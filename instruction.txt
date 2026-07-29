@@ -1,0 +1,255 @@
+=========================
+BACKEND & USER DATA
+=========================
+
+Add Supabase integration for persistent user data.
+
+Use:
+
+- Supabase Authentication
+- Supabase Database
+- Supabase Row Level Security
+
+Authentication:
+
+Implement simple user authentication:
+
+- Email + password sign up
+- Email + password login
+- Logout button in settings/profile menu
+- Persistent session using Supabase Auth
+- Auto restore logged-in user on page reload
+
+After login:
+
+Create and load player profile.
+
+=========================
+DATABASE STRUCTURE
+=========================
+
+Create Supabase tables:
+
+players
+
+Fields:
+
+id:
+uuid (references auth.users)
+
+username:
+text
+
+avatar:
+text
+
+created_at:
+timestamp
+
+last_login:
+timestamp
+
+
+player_resources
+
+Fields:
+
+player_id:
+uuid
+
+crystals:
+integer default 6420
+
+gold:
+integer default 1235000
+
+
+gacha_progress
+
+Fields:
+
+player_id:
+uuid
+
+current_pity:
+integer default 63
+
+guaranteed_featured:
+boolean default false
+
+total_wishes:
+integer default 0
+
+
+collections
+
+Fields:
+
+player_id:
+uuid
+
+card_id:
+text
+
+rarity:
+integer (3,4,5)
+
+obtained_count:
+integer default 1
+
+obtained_at:
+timestamp
+
+
+=========================
+GAME DATA LOGIC
+=========================
+
+Connect the gacha UI to Supabase.
+
+When user presses:
+
+"Wish x1"
+
+or
+
+"Wish x10"
+
+
+Perform:
+
+1. Check player crystal balance.
+2. Deduct crystals:
+   - x1 = 160 crystals
+   - x10 = 1600 crystals
+
+3. Update pity counter.
+
+4. Generate rewards according to rates:
+
+★★★★★ 1%
+
+★★★★ 8%
+
+★★★ 91%
+
+
+Pity system:
+
+- Soft pity starts at 74 wishes.
+- Hard pity guarantees ★5 at 90 wishes.
+- Featured character guarantee after losing 50/50.
+
+After pull:
+
+- Save obtained card to collections table.
+- Update player resources.
+- Update pity progress.
+- Show reward animation.
+
+
+=========================
+USER INTERFACE CHANGES
+=========================
+
+Add top-right user profile button.
+
+When clicked:
+
+Open small profile panel:
+
+- Username
+- Player level
+- Total wishes
+- Collection progress
+- Logout button
+
+
+If user is not logged in:
+
+Show elegant login modal:
+
+Title:
+
+"Enter the Karuta Hall"
+
+Buttons:
+
+- Create Account
+- Login
+
+
+Use the same fantasy Japanese aesthetic as the main game UI.
+
+
+=========================
+SUPABASE IMPLEMENTATION
+=========================
+
+Create:
+
+src/lib/supabase.ts
+
+Initialize Supabase client using environment variables:
+
+VITE_SUPABASE_URL
+
+VITE_SUPABASE_ANON_KEY
+
+
+Create reusable hooks:
+
+useAuth()
+
+Handles:
+- login
+- signup
+- logout
+- session state
+
+
+usePlayerData()
+
+Handles:
+- loading player profile
+- saving resources
+- updating pity
+- saving obtained cards
+
+
+Use async/await and proper loading/error states.
+
+
+=========================
+SECURITY
+=========================
+
+Enable Row Level Security.
+
+Users can only:
+
+- read their own profile
+- update their own resources
+- update their own pity
+- access their own collection
+
+
+Do not expose service role keys.
+
+Use only public anon key on frontend.
+
+
+=========================
+DEVELOPMENT MODE
+=========================
+
+If user is not authenticated:
+
+Allow demo mode with temporary local state.
+
+After login:
+
+Sync demo progress into Supabase.
+
+
+The final application should feel like a real online collectible gacha game with persistent accounts, saved progress, and multiplayer-ready architecture.
