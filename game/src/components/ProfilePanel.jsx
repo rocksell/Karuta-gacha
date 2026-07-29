@@ -1,5 +1,5 @@
 import { useAuth } from '../hooks/useAuth'
-import { usePlayerData } from '../hooks/usePlayerData'
+import { usePlayerData } from '../context/PlayerDataContext'
 
 const ProfilePanel = () => {
   const { signOut } = useAuth()
@@ -18,6 +18,7 @@ const ProfilePanel = () => {
       }}
     >
       <p>Username: {player?.username}</p>
+      <p>Role: {player?.role}</p>
       <p>Player level: 1</p> {/* Hardcoded for now */}
       <p>Total wishes: {gachaProgress?.total_wishes}</p>
       <p>Collection progress: {collection?.length} cards</p>

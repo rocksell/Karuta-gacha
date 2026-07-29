@@ -1,4 +1,4 @@
-import { usePlayerData } from '../hooks/usePlayerData'
+import { usePlayerData } from '../context/PlayerDataContext'
 
 // Hardcoded card pool
 const cardPool = {
@@ -7,7 +7,7 @@ const cardPool = {
   '5': ['Card F'],
 }
 
-const GachaPage = () => {
+const GachaPage = ({ setPage }) => {
   const {
     resources,
     gachaProgress,
@@ -72,7 +72,6 @@ const GachaPage = () => {
       }
       rewards.push({
         ...reward,
-        player_id: gachaProgress.player_id,
         obtained_at: new Date()
       })
     }
@@ -100,6 +99,7 @@ const GachaPage = () => {
       <p>Pity: {gachaProgress?.current_pity}</p>
       <button onClick={() => handleWish(1)}>Wish x1</button>
       <button onClick={() => handleWish(10)}>Wish x10</button>
+      <button onClick={() => setPage('achievements')}>Achievements</button>
     </div>
   )
 }
