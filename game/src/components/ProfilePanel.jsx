@@ -6,23 +6,15 @@ const ProfilePanel = () => {
   const { player, gachaProgress, collection } = usePlayerData()
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: 40,
-        right: 0,
-        width: 200,
-        border: '1px solid black',
-        padding: 10,
-        backgroundColor: 'white',
-      }}
-    >
-      <p>Username: {player?.username}</p>
-      <p>Role: {player?.role}</p>
-      <p>Player level: 1</p> {/* Hardcoded for now */}
-      <p>Total wishes: {gachaProgress?.total_wishes}</p>
-      <p>Collection progress: {collection?.length} cards</p>
-      <button onClick={signOut}>Logout</button>
+    <div className="profile-panel">
+      <span className="eyebrow">Игрок каруты</span>
+      <h3>{player?.username}</h3>
+      <div className="profile-grid">
+        <p><span>Уровень</span><strong>1</strong></p>
+        <p><span>Прочитано</span><strong>{gachaProgress?.total_wishes ?? 0}</strong></p>
+        <p><span>Коллекция</span><strong>{collection?.length ?? 0}</strong></p>
+      </div>
+      <button className="ghost-button logout-button" onClick={signOut}>Выйти</button>
     </div>
   )
 }

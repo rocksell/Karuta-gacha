@@ -7,19 +7,24 @@ export const LoginPage = () => {
   const { signIn, signUp } = useAuth()
   const [isLogin, setIsLogin] = useState(true)
   const [successMessage, setSuccessMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
 
   const handleAuth = async (e) => {
     e.preventDefault()
+    setErrorMessage('')
     if (isLogin) {
-      setSuccessMessage('') // Clear message when switching to login
-      await signIn(email, password)
+      setSuccessMessage('')
+      const { error } = await signIn(email, password)
+      if (error) {
+        setErrorMessage(error.message)
+      }
     } else {
-      setSuccessMessage('') // Clear message when switching to sign up
+      setSuccessMessage('')
       const { error } = await signUp(email, password)
       if (!error) {
         setSuccessMessage('Account created successfully! Please check your email to confirm.')
       } else {
-        // Handle signup error if needed, e.g., set an errorMessage state
+        setErrorMessage(error.message)
         console.error('Signup error:', error.message)
       }
     }
@@ -27,31 +32,50 @@ export const LoginPage = () => {
 
   const handleToggleForm = () => {
     setIsLogin(!isLogin)
-    setSuccessMessage('') // Clear message when toggling form
+    setSuccessMessage('')
+    setErrorMessage('')
   }
 
   return (
-    <div>
-      <h1>Enter the Karuta Hall</h1>
-      <form onSubmit={handleAuth}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button type="submit">{isLogin ? 'Login' : 'Create Account'}</button>
-      </form>
-      {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
-      <button onClick={handleToggleForm}>
-        {isLogin ? 'Need an account? Sign up' : 'Have an account? Log in'}
-      </button>
+    <div className="login-page">
+      <section className="login-form-side">
+        <div className="brand login-brand">
+          <span className="brand-mark">か</span>
+          <span>Кёги Карута<small className="brand-kana">競技かるた</small></span>
+        </div>
+        <span className="eyebrow">{isLogin ? 'С возвращением' : 'Первый шаг на татами'}</span>
+        <h1>{isLogin ? 'Войти в зал каруты' : 'Создать игрока'}</h1>
+        <p className="login-subtitle">Слушайте стихи, собирайте карты и растите вместе с командой.</p>
+        <form className="login-form" onSubmit={handleAuth}>
+          <input
+            type="email"
+            placeholder="Электронная почта"
+            aria-label="Электронная почта"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Пароль"
+            aria-label="Пароль"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button className="primary-button login-submit" type="submit">
+            {isLogin ? 'Войти на татами' : 'Создать аккаунт'}
+          </button>
+        </form>
+        {successMessage && <p className="login-message success">{successMessage}</p>}
+        {errorMessage && <p className="login-message error" role="alert">{errorMessage}</p>}
+        <button className="login-toggle" onClick={handleToggleForm}>
+          {isLogin ? 'Нет аккаунта? Присоединиться' : 'Уже играете? Войти'}
+        </button>
+      </section>
+      <aside className="login-art">
+        <div className="login-art-caption">百人一首 · Сто поэтов, одна весна 🌸</div>
+      </aside>
     </div>
   )
 }

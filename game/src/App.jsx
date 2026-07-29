@@ -18,16 +18,27 @@ function App() {
   }
 
   return (
-    <div>
-      <ProfileButton />
-      {player?.role === 'admin' && (
-        <button onClick={() => setPage('admin')}>Admin</button>
-      )}
+    <div className="app-shell">
+      <header className="app-header">
+        <div className="brand">
+          <span className="brand-mark">か</span>
+          <span>
+            Кёги Карута
+            <small className="brand-kana">競技かるた</small>
+          </span>
+        </div>
+        <div className="header-actions">
+          {player?.role === 'admin' && (
+            <button className="ghost-button admin-button" onClick={() => setPage('admin')}>Админ</button>
+          )}
+          <ProfileButton onGetPetals={() => setPage('achievements')} />
+        </div>
+      </header>
       {loading ? (
-        <div>Loading...</div>
+        <div className="loading-screen"><span className="loading-flower">🌸</span></div>
       ) : (
         <>
-          {page === 'gacha' && <GachaPage setPage={setPage} />}
+          {page === 'gacha' && <GachaPage />}
           {page === 'achievements' && <Achievements setPage={setPage} />}
           {page === 'admin' && <AdminPage setPage={setPage} />}
         </>

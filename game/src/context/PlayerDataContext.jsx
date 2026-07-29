@@ -99,15 +99,35 @@ export const PlayerDataProvider = ({ children }) => {
 
   const completeAchievement = async (achievementId) => {
     const { data, error } = await supabase
-      .from('player_achievements')
-      .insert({ player_id: user.id, achievement_id: achievementId })
-      .select();
+      .rpc('claim_achievement', { p_achievement_id: achievementId })
+      .single();
+
     if (error) {
       console.error(error);
-    } else if (data) {
-      setCompletedAchievements(prev => [...prev, data[0]]);
+      return { data: null, error };
     }
-    return data;
+
+    if (data) {
+      setCompletedAchievements(prev => {
+        const existing = prev.find(item => item.achievement_id === achievementId);
+        if (existing) {
+          return prev.map(item =>
+            item.achievement_id === achievementId
+              ? { ...item, claim_count: data.claim_count }
+              : item
+          );
+        }
+
+        return [...prev, {
+          player_id: user.id,
+          achievement_id: achievementId,
+          claim_count: data.claim_count,
+        }];
+      });
+      setResources(prev => prev ? { ...prev, crystals: data.crystals } : prev);
+    }
+
+    return { data, error: null };
   };
 
   const updateAchievementMultipliers = async (newMultipliers) => {
