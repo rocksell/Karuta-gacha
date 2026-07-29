@@ -9,11 +9,14 @@ export const LoginPage = () => {
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [confirmationEmail, setConfirmationEmail] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(value)
 
   const handleAuth = async (e) => {
     e.preventDefault()
+    if (submitting) return
+
     setErrorMessage('')
     const normalizedEmail = email.trim().toLowerCase()
 
@@ -22,26 +25,35 @@ export const LoginPage = () => {
       return
     }
 
-    if (isLogin) {
+    setSubmitting(true)
+    try {
       setSuccessMessage('')
-      const { error } = await signIn(normalizedEmail, password)
-      if (error) {
-        const emailNotConfirmed = error.code === 'email_not_confirmed'
-          || error.message?.toLowerCase().includes('email not confirmed')
-        setErrorMessage(emailNotConfirmed
-          ? 'Почта ещё не подтверждена. Откройте письмо от Supabase и перейдите по ссылке.'
-          : error.message)
-      }
-    } else {
-      setSuccessMessage('')
-      const { error } = await signUp(normalizedEmail, password)
-      if (!error) {
-        setConfirmationEmail(normalizedEmail)
-        setSuccessMessage('')
+      if (isLogin) {
+        const { error } = await signIn(normalizedEmail, password)
+        if (error) {
+          const emailNotConfirmed = error.code === 'email_not_confirmed'
+            || error.message?.toLowerCase().includes('email not confirmed')
+          setErrorMessage(emailNotConfirmed
+            ? 'Почта ещё не подтверждена. Откройте письмо от Supabase и перейдите по ссылке.'
+            : error.message)
+        }
       } else {
-        setErrorMessage(error.message)
-        console.error('Signup error:', error.message)
+        const { error } = await signUp(normalizedEmail, password)
+        if (!error) {
+          setConfirmationEmail(normalizedEmail)
+          setSuccessMessage('')
+        } else {
+          const rateLimited = error.status === 429
+            || error.code === 'over_email_send_rate_limit'
+            || error.message?.toLowerCase().includes('rate limit')
+          setErrorMessage(rateLimited
+            ? 'Слишком много писем отправлено за короткое время. Подождите некоторое время (иногда до часа) и попробуйте снова.'
+            : error.message)
+          console.error('Signup error:', error.message)
+        }
       }
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -79,8 +91,10 @@ export const LoginPage = () => {
             minLength={6}
             required
           />
-          <button className="primary-button login-submit" type="submit">
-            {isLogin ? 'Войти на татами' : 'Создать аккаунт'}
+          <button className="primary-button login-submit" type="submit" disabled={submitting}>
+            {submitting
+              ? (isLogin ? 'Входим…' : 'Отправляем письмо…')
+              : (isLogin ? 'Войти на татами' : 'Создать аккаунт')}
           </button>
         </form>
         {successMessage && <p className="login-message success">{successMessage}</p>}

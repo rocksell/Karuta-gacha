@@ -852,6 +852,12 @@
   margin-top: 4px;
 }
 
+.login-submit:disabled {
+  cursor: wait;
+  opacity: 0.68;
+  transform: none;
+}
+
 .login-toggle {
   margin-top: 14px;
   color: var(--forest);
