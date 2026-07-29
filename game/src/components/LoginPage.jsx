@@ -8,21 +8,36 @@ export const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true)
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
+  const [confirmationEmail, setConfirmationEmail] = useState('')
+
+  const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(value)
 
   const handleAuth = async (e) => {
     e.preventDefault()
     setErrorMessage('')
+    const normalizedEmail = email.trim().toLowerCase()
+
+    if (!isValidEmail(normalizedEmail)) {
+      setErrorMessage('Введите корректный адрес электронной почты.')
+      return
+    }
+
     if (isLogin) {
       setSuccessMessage('')
-      const { error } = await signIn(email, password)
+      const { error } = await signIn(normalizedEmail, password)
       if (error) {
-        setErrorMessage(error.message)
+        const emailNotConfirmed = error.code === 'email_not_confirmed'
+          || error.message?.toLowerCase().includes('email not confirmed')
+        setErrorMessage(emailNotConfirmed
+          ? 'Почта ещё не подтверждена. Откройте письмо от Supabase и перейдите по ссылке.'
+          : error.message)
       }
     } else {
       setSuccessMessage('')
-      const { error } = await signUp(email, password)
+      const { error } = await signUp(normalizedEmail, password)
       if (!error) {
-        setSuccessMessage('Account created successfully! Please check your email to confirm.')
+        setConfirmationEmail(normalizedEmail)
+        setSuccessMessage('')
       } else {
         setErrorMessage(error.message)
         console.error('Signup error:', error.message)
@@ -61,6 +76,7 @@ export const LoginPage = () => {
             aria-label="Пароль"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            minLength={6}
             required
           />
           <button className="primary-button login-submit" type="submit">
@@ -76,6 +92,26 @@ export const LoginPage = () => {
       <aside className="login-art">
         <div className="login-art-caption">百人一首 · Сто поэтов, одна весна 🌸</div>
       </aside>
+
+      {confirmationEmail && (
+        <div className="email-confirm-backdrop" onClick={() => setConfirmationEmail('')}>
+          <section className="email-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="email-confirm-title" onClick={(event) => event.stopPropagation()}>
+            <div className="email-confirm-icon">
+              <span>✉</span>
+              <i>🌸</i>
+            </div>
+            <span className="eyebrow">Остался один шаг</span>
+            <h2 id="email-confirm-title">Подтвердите почту</h2>
+            <p>Мы отправили письмо на</p>
+            <strong>{confirmationEmail}</strong>
+            <p className="email-confirm-note">
+              Перейдите по ссылке из письма, а затем вернитесь сюда и войдите в аккаунт.
+              Проверьте папку «Спам», если письмо не появилось.
+            </p>
+            <button className="primary-button" onClick={() => setConfirmationEmail('')}>Хорошо, проверю почту</button>
+          </section>
+        </div>
+      )}
     </div>
   )
 }
