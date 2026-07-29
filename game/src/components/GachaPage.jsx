@@ -214,19 +214,44 @@ const GachaPage = () => {
               <button className="modal-close" aria-label="Закрыть" onClick={() => setIsHistoryOpen(false)}>×</button>
             </header>
             {readingHistory.length > 0 ? (
-              <div className="history-grid">
-                {readingHistory.map((card, index) => {
-                  const number = Number(card.card_id.replace('poem-', ''))
-                  return (
-                    <article className={`history-card history-rarity-${card.rarity}`} key={`${card.id ?? card.card_id}-${index}`}>
-                      <img src={`/cards/${String(number).padStart(3, '0')}.png`} alt={`Поэма № ${number}`} />
-                      <div>
-                        <strong>№ {String(number).padStart(3, '0')}</strong>
-                        <span>{'★'.repeat(card.rarity)}</span>
-                      </div>
-                    </article>
-                  )
-                })}
+              <div className="history-table-wrap">
+                <table className="history-table">
+                  <thead>
+                    <tr>
+                      <th>Лепестки</th>
+                      <th>Карта</th>
+                      <th>Редкость</th>
+                      <th>Прочитана</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {readingHistory.map((card, index) => {
+                      const number = Number(card.card_id.replace('poem-', ''))
+                      const obtainedDate = card.obtained_at
+                        ? new Date(card.obtained_at).toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' })
+                        : '—'
+                      return (
+                        <tr className={`history-rarity-${card.rarity}`} key={`${card.id ?? card.card_id}-${index}`}>
+                          <td>
+                            <span className="history-petals" aria-label={`Редкость: ${card.rarity}`}>
+                              {Array.from({ length: card.rarity }, (_, petalIndex) => (
+                                <i key={petalIndex}>✿</i>
+                              ))}
+                            </span>
+                          </td>
+                          <td>
+                            <div className="history-card-name">
+                              <img src={`/cards/${String(number).padStart(3, '0')}.png`} alt="" />
+                              <strong>Поэма № {String(number).padStart(3, '0')}</strong>
+                            </div>
+                          </td>
+                          <td><span className="history-rarity-label">{card.rarity} редкость</span></td>
+                          <td><time>{obtainedDate}</time></td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
               </div>
             ) : (
               <div className="history-empty">

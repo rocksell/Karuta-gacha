@@ -507,67 +507,126 @@
   font-size: 11px;
 }
 
-.history-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 16px;
+.history-table-wrap {
   overflow-y: auto;
-  padding: 24px 30px 30px;
+  padding: 22px 30px 30px;
 }
 
-.history-card {
-  padding: 9px;
-  border: 2px solid transparent;
-  border-radius: 15px;
-  background: white;
-  box-shadow: 0 8px 22px rgba(49, 72, 54, 0.1);
-}
-
-.history-card img {
+.history-table {
   width: 100%;
-  display: block;
-  border-radius: 5px;
+  overflow: hidden;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid rgba(49, 95, 69, 0.13);
+  border-radius: 18px;
+  color: var(--forest);
+  background: rgba(255, 255, 255, 0.7);
 }
 
-.history-card > div {
+.history-table th {
+  padding: 13px 18px;
+  color: #55705e;
+  background:
+    linear-gradient(rgba(232, 239, 226, 0.95), rgba(232, 239, 226, 0.95)),
+    repeating-linear-gradient(90deg, #aebd98 0 1px, transparent 1px 5px);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.history-table th:first-child,
+.history-table td:first-child {
+  width: 180px;
+  text-align: center;
+}
+
+.history-table th:last-child,
+.history-table td:last-child {
+  width: 100px;
+}
+
+.history-table td {
+  padding: 10px 18px;
+  border-top: 1px solid rgba(49, 95, 69, 0.1);
+  background: rgba(255, 253, 247, 0.76);
+  transition: background 160ms ease;
+}
+
+.history-table tbody tr:hover td {
+  background: rgba(239, 164, 184, 0.1);
+}
+
+.history-card-name {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  padding: 8px 3px 2px;
+  gap: 12px;
 }
 
-.history-card strong {
-  font-size: 11px;
+.history-card-name img {
+  width: 38px;
+  height: 48px;
+  object-fit: cover;
+  border: 1px solid rgba(49, 95, 69, 0.12);
+  border-radius: 5px;
+  box-shadow: 0 4px 10px rgba(49, 72, 54, 0.12);
 }
 
-.history-card span {
-  font-size: 8px;
-  letter-spacing: -0.08em;
+.history-card-name strong {
+  font-size: 13px;
 }
 
-.history-rarity-3 {
-  border-color: #555b59;
-  color: #3f4543;
+.history-petals {
+  display: inline-flex;
+  justify-content: center;
+  gap: 2px;
+  white-space: nowrap;
 }
 
-.history-rarity-4 {
-  border-color: var(--pink);
+.history-petals i {
+  font-style: normal;
+  font-size: 15px;
+  filter: drop-shadow(0 2px 3px rgba(49, 72, 54, 0.12));
+}
+
+.history-rarity-3 .history-petals {
+  color: #718678;
+}
+
+.history-rarity-4 .history-petals {
   color: var(--pink-deep);
-  background: #fff8fa;
 }
 
-.history-rarity-5 {
-  border-width: 3px;
-  border-color: var(--gold);
-  color: #a3762e;
-  background: #fffaf0;
-  box-shadow: 0 10px 30px rgba(217, 174, 102, 0.3);
+.history-rarity-5 .history-petals {
+  color: var(--gold);
+  text-shadow: 0 2px 8px rgba(217, 174, 102, 0.35);
 }
 
-.history-rarity-5 strong,
-.history-rarity-5 span {
+.history-rarity-label {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: #53695a;
+  background: #e7eee3;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.history-rarity-4 .history-rarity-label {
+  color: var(--berry);
+  background: var(--pink-soft);
+}
+
+.history-rarity-5 .history-rarity-label {
+  color: #8d6728;
+  background: #f8eac8;
   font-weight: 900;
+}
+
+.history-table time {
+  color: var(--muted);
+  font-size: 11px;
 }
 
 .history-empty {
@@ -2047,19 +2106,40 @@
     padding: 22px 18px 17px;
   }
 
-  .history-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
-    padding: 16px;
+  .history-table-wrap {
+    padding: 14px 14px 22px;
   }
 
-  .history-card {
-    padding: 6px;
-    border-radius: 11px;
+  .history-table th,
+  .history-table td {
+    padding: 9px 8px;
   }
 
-  .history-card > div {
-    align-items: flex-start;
-    flex-direction: column;
+  .history-table th:first-child,
+  .history-table td:first-child {
+    width: auto;
+  }
+
+  .history-table th:last-child,
+  .history-table td:last-child {
+    display: none;
+  }
+
+  .history-card-name img {
+    width: 31px;
+    height: 40px;
+  }
+
+  .history-card-name strong {
+    font-size: 11px;
+  }
+
+  .history-petals {
+    max-width: 66px;
+    flex-wrap: wrap;
+  }
+
+  .history-petals i {
+    font-size: 12px;
   }
 }
