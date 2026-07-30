@@ -173,9 +173,9 @@ const GachaPage = () => {
             <div className="card-reveal-copy">
               <span className="eyebrow">百人一首 · Карта прочитана</span>
               <h2 id="card-reveal-title">Поэма № {String(activeCardNumber).padStart(3, '0')}</h2>
-              <div className="rarity-stars" aria-label={`Редкость: ${activeCard.rarity} звезды`}>
+              <div className="rarity-stars" aria-label={`Редкость: ${activeCard.rarity}`}>
                 {Array.from({ length: activeCard.rarity }, (_, index) => (
-                  <span key={index} style={{ '--star-index': index }}>★</span>
+                  <span key={index} style={{ '--star-index': index }}>✿</span>
                 ))}
               </div>
               <p>
