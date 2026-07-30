@@ -281,11 +281,11 @@
   background:
     radial-gradient(circle at 50% 42%, rgba(253, 232, 238, 0.35), transparent 34%),
     rgba(32, 53, 38, 0.58);
-  backdrop-filter: blur(9px);
   animation: reveal-backdrop-in 260ms ease-out;
 }
 
 .card-reveal-modal {
+  --content-delay: 1.65s;
   width: 100vw;
   height: 100svh;
   min-height: 0;
@@ -305,6 +305,14 @@
   animation: reveal-modal-in 560ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.card-reveal-modal.rarity-4 {
+  --content-delay: 1.87s;
+}
+
+.card-reveal-modal.rarity-5 {
+  --content-delay: 2.09s;
+}
+
 .card-reveal-modal::after {
   content: '';
   position: absolute;
@@ -320,6 +328,9 @@
   position: relative;
   z-index: 2;
   isolation: isolate;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: reveal-content-in 420ms cubic-bezier(0.22, 1, 0.36, 1) var(--content-delay) forwards;
 }
 
 .revealed-card-frame img {
@@ -330,7 +341,8 @@
   border-radius: 6px;
   box-shadow: 0 25px 46px rgba(33, 66, 43, 0.28);
   clip-path: inset(0 0 100% 0);
-  animation: card-burn-reveal 1.45s cubic-bezier(0.45, 0, 0.2, 1) 160ms forwards;
+  animation: card-burn-reveal 1.2s cubic-bezier(0.45, 0, 0.2, 1)
+    calc(var(--content-delay) + 80ms) forwards;
 }
 
 .revealed-card-glow {
@@ -339,8 +351,7 @@
   inset: 8%;
   border-radius: 50%;
   background: rgba(168, 201, 158, 0.58);
-  filter: blur(30px);
-  animation: card-glow 1.8s ease-in-out infinite alternate;
+  filter: blur(22px);
 }
 
 .rarity-4 .revealed-card-glow {
@@ -354,6 +365,14 @@
 .card-reveal-copy {
   position: relative;
   z-index: 2;
+}
+
+.card-reveal-copy > :not(.rarity-stars) {
+  opacity: 0;
+  transform: translateY(18px);
+  will-change: transform, opacity;
+  animation: reveal-copy-in 440ms cubic-bezier(0.22, 1, 0.36, 1)
+    calc(var(--content-delay) + 220ms) forwards;
 }
 
 .card-reveal-copy h2 {
@@ -381,17 +400,25 @@
   display: inline-block;
   opacity: 0;
   transform-origin: center;
-  filter: blur(5px);
+  will-change: transform, opacity;
+  contain: paint;
   animation:
-    flower-boom-in 940ms cubic-bezier(0.16, 1, 0.3, 1)
-      calc(1.05s + var(--star-index) * 360ms) forwards,
+    flower-boom-in 680ms cubic-bezier(0.16, 1, 0.3, 1)
+      calc(120ms + var(--star-index) * 220ms) forwards,
     rarity-flower-float 2.2s ease-in-out
-      calc(2.05s + var(--star-index) * 360ms) infinite;
+      calc(900ms + var(--star-index) * 220ms) infinite;
+}
+
+.rarity-3 .rarity-stars {
+  color: var(--leaf);
+}
+
+.rarity-4 .rarity-stars {
+  color: var(--pink-deep);
 }
 
 .rarity-5 .rarity-stars {
   color: var(--gold);
-  text-shadow: 0 3px 12px rgba(217, 174, 102, 0.5);
 }
 
 .reveal-accept {
@@ -661,7 +688,8 @@
     0 0 8px #fff,
     0 0 15px #ffc86c,
     0 0 26px rgba(239, 164, 184, 0.9);
-  animation: burn-line-sweep 1.45s cubic-bezier(0.45, 0, 0.2, 1) 160ms forwards;
+  animation: burn-line-sweep 1.2s cubic-bezier(0.45, 0, 0.2, 1)
+    calc(var(--content-delay) + 80ms) forwards;
 }
 
 .card-burn-sparks {
@@ -683,8 +711,8 @@
   border-radius: 50%;
   background: #fff3ac;
   box-shadow: 0 0 7px #ffbd58, 0 0 12px rgba(255, 148, 91, 0.9);
-  animation: burn-spark-fall 1.25s ease-out
-    calc(230ms + var(--spark-index) * 48ms) forwards;
+  animation: burn-spark-fall 1.05s ease-out
+    calc(var(--content-delay) + 120ms + var(--spark-index) * 38ms) forwards;
 }
 
 @keyframes reveal-backdrop-in {
@@ -725,34 +753,40 @@
 @keyframes flower-boom-in {
   0% {
     opacity: 0;
-    transform: scale(30) rotate(-18deg);
-    filter: blur(8px);
-    text-shadow: 0 0 2px currentColor;
+    transform: scale(26) rotate(-18deg);
   }
   14% {
     opacity: 1;
-    transform: scale(24) rotate(8deg);
-    filter: blur(1px);
-    text-shadow:
-      0 0 16px white,
-      0 0 45px currentColor,
-      0 0 90px currentColor;
+    transform: scale(21) rotate(8deg);
   }
   58% {
     opacity: 1;
     transform: scale(1.7) translateY(-12px) rotate(-5deg);
-    filter: blur(0);
-    text-shadow: 0 5px 18px currentColor;
   }
   78% {
     transform: scale(0.72) translateY(3px) rotate(3deg);
-    text-shadow: 0 2px 7px currentColor;
   }
   100% {
     opacity: 1;
     transform: scale(1) translateY(0) rotate(0);
-    filter: blur(0);
-    text-shadow: 0 2px 7px currentColor;
+  }
+}
+
+@keyframes reveal-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(25px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes reveal-copy-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -1837,6 +1871,13 @@
 
   .revealed-card-frame img {
     clip-path: inset(0);
+    animation: none;
+  }
+
+  .revealed-card-frame,
+  .card-reveal-copy > :not(.rarity-stars) {
+    opacity: 1;
+    transform: none;
     animation: none;
   }
 
