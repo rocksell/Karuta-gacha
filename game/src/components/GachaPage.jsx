@@ -5,6 +5,7 @@ import heroImage from '../assets/karuta-sakura-hero.png'
 const GachaPage = () => {
   const [revealedCards, setRevealedCards] = useState([])
   const [activeCardIndex, setActiveCardIndex] = useState(0)
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false)
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
   const {
     resources,
@@ -89,11 +90,23 @@ const GachaPage = () => {
 
     setRevealedCards(rewards)
     setActiveCardIndex(0)
+    setIsSummaryOpen(false)
   }
 
   const closeCardReveal = () => {
     setRevealedCards([])
     setActiveCardIndex(0)
+    setIsSummaryOpen(false)
+  }
+
+  const handleRevealClick = () => {
+    if (revealedCards.length === 1) {
+      closeCardReveal()
+    } else if (activeCardIndex < revealedCards.length - 1) {
+      setActiveCardIndex(index => index + 1)
+    } else {
+      setIsSummaryOpen(true)
+    }
   }
 
   const activeCard = revealedCards[activeCardIndex]
@@ -104,7 +117,10 @@ const GachaPage = () => {
     .sort((left, right) => new Date(right.obtained_at) - new Date(left.obtained_at))
 
   return (
-    <main className="karuta-stage" style={{ '--hero-image': `url(${heroImage})` }}>
+    <main
+      className={`karuta-stage${activeCard ? ' has-card-reveal' : ''}`}
+      style={{ '--hero-image': `url(${heroImage})` }}
+    >
       <div className="sakura sakura-one">✿</div>
       <div className="sakura sakura-two">✿</div>
       <section className="reading-card">
@@ -151,9 +167,26 @@ const GachaPage = () => {
         <div><small>Сезон</small><strong>Цветение сакуры</strong></div>
       </div>
 
-      {activeCard && (
-        <div className="card-reveal-backdrop" onClick={closeCardReveal}>
-          <section className={`card-reveal-modal rarity-${activeCard.rarity}`} role="dialog" aria-modal="true" aria-labelledby="card-reveal-title">
+      {activeCard && !isSummaryOpen && (
+        <div className="card-reveal-backdrop" onClick={handleRevealClick}>
+          <section
+            className={`card-reveal-modal rarity-${activeCard.rarity}`}
+            key={activeCardIndex}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="card-reveal-title"
+          >
+            {revealedCards.length > 1 && (
+              <button
+                className="reveal-skip"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  setIsSummaryOpen(true)
+                }}
+              >
+                Пропустить →
+              </button>
+            )}
             <div className="card-reveal-petals" aria-hidden="true">
               <span>✿</span><span>✿</span><span>✿</span><span>✿</span><span>✿</span>
             </div>
@@ -179,24 +212,56 @@ const GachaPage = () => {
                 ))}
               </div>
               <p>
-                Новая строка из антологии ста поэтов появилась в вашей коллекции.
+                В вашей коллекции новая карта
               </p>
               {revealedCards.length > 1 && (
-                <div className="reveal-pagination" onClick={(event) => event.stopPropagation()}>
-                  <button
-                    className="ghost-button"
-                    disabled={activeCardIndex === 0}
-                    onClick={() => setActiveCardIndex(index => index - 1)}
-                  >←</button>
+                <div className="reveal-pagination">
                   <strong>{activeCardIndex + 1} / {revealedCards.length}</strong>
-                  <button
-                    className="ghost-button"
-                    disabled={activeCardIndex === revealedCards.length - 1}
-                    onClick={() => setActiveCardIndex(index => index + 1)}
-                  >→</button>
                 </div>
               )}
-              <span className="reveal-close-hint">Нажмите в любом месте, чтобы продолжить</span>
+              <span className="reveal-close-hint">
+                {revealedCards.length === 1
+                  ? 'Нажмите в любом месте, чтобы закрыть'
+                  : activeCardIndex === revealedCards.length - 1
+                    ? 'Нажмите, чтобы увидеть все карты'
+                    : 'Нажмите, чтобы открыть следующую карту'}
+              </span>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {isSummaryOpen && revealedCards.length > 1 && (
+        <div className="reading-summary-backdrop" onClick={closeCardReveal}>
+          <section className="reading-summary" role="dialog" aria-modal="true" aria-labelledby="reading-summary-title">
+            <div className="card-reveal-petals" aria-hidden="true">
+              <span>✿</span><span>✿</span><span>✿</span><span>✿</span><span>✿</span>
+            </div>
+            <header className="reading-summary-head">
+              <span className="eyebrow">十枚読み · Итоги чтения</span>
+              <h2 id="reading-summary-title">Полученные карты</h2>
+              <p>Вся десятка раскрыта — нажмите в любом месте, чтобы продолжить</p>
+            </header>
+            <div className="reading-summary-grid">
+              {revealedCards.map((card, index) => {
+                const number = Number(card.card_id.replace('poem-', ''))
+                return (
+                  <article
+                    className={`summary-card summary-rarity-${card.rarity}`}
+                    key={`${card.card_id}-${index}`}
+                    style={{ '--summary-index': index }}
+                  >
+                    <img
+                      src={`/cards/${String(number).padStart(3, '0')}.png`}
+                      alt={`Поэма № ${number}`}
+                    />
+                    <div>
+                      <strong>№ {String(number).padStart(3, '0')}</strong>
+                      <span>{'✿'.repeat(card.rarity)}</span>
+                    </div>
+                  </article>
+                )
+              })}
             </div>
           </section>
         </div>

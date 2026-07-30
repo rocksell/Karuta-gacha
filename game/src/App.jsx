@@ -5,6 +5,7 @@ import { LoginPage } from './components/LoginPage';
 import GachaPage from './components/GachaPage';
 import Achievements from './pages/Achievements';
 import AdminPage from './pages/AdminPage';
+import CollectionPage from './pages/CollectionPage';
 import ProfileButton from './components/ProfileButton';
 import './App.css';
 
@@ -20,18 +21,21 @@ function App() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div className="brand">
+        <button className="brand brand-home-button" onClick={() => setPage('gacha')} aria-label="Перейти на главную">
           <span className="brand-mark">か</span>
           <span>
             Кёги Карута
             <small className="brand-kana">競技かるた</small>
           </span>
-        </div>
+        </button>
         <div className="header-actions">
           {player?.role === 'admin' && (
             <button className="ghost-button admin-button" onClick={() => setPage('admin')}>Админ</button>
           )}
-          <ProfileButton onGetPetals={() => setPage('achievements')} />
+          <ProfileButton
+            onGetPetals={() => setPage('achievements')}
+            onOpenCollection={() => setPage('collection')}
+          />
         </div>
       </header>
       {loading ? (
@@ -40,6 +44,7 @@ function App() {
         <>
           {page === 'gacha' && <GachaPage />}
           {page === 'achievements' && <Achievements setPage={setPage} />}
+          {page === 'collection' && <CollectionPage setPage={setPage} />}
           {page === 'admin' && <AdminPage setPage={setPage} />}
         </>
       )}

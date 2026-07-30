@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import ProfilePanel from './ProfilePanel'
 
-const ProfileButton = ({ onGetPetals }) => {
+const ProfileButton = ({ onGetPetals, onOpenCollection }) => {
   const [isPanelOpen, setIsPanelOpen] = useState(false)
 
   return (
@@ -14,7 +14,14 @@ const ProfileButton = ({ onGetPetals }) => {
         <button className="profile-trigger" aria-label="Открыть профиль" onClick={() => setIsPanelOpen(!isPanelOpen)}>
           <span>🌸</span>
         </button>
-        {isPanelOpen && <ProfilePanel />}
+        {isPanelOpen && (
+          <ProfilePanel
+            onOpenCollection={() => {
+              setIsPanelOpen(false)
+              onOpenCollection()
+            }}
+          />
+        )}
       </div>
     </div>
   )

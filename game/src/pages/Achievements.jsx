@@ -3,7 +3,6 @@ import { usePlayerData } from '../context/PlayerDataContext';
 
 const Achievements = ({ setPage }) => {
   const {
-    completedAchievements,
     achievementMultipliers,
     completeAchievement,
     resources,
@@ -43,19 +42,15 @@ const Achievements = ({ setPage }) => {
     { id: 'full_karuta_game', text: 'Сыграть полную игру на 25 карт', description: 'Завершите турнирную партию из двадцати пяти карт', reward: 1600, icon: '競', group: 'Матч' },
     { id: 'short_karuta_game', text: 'Сыграть короткую игру', description: 'Проведите быструю тренировочную встречу', reward: 800, icon: '読', group: 'Матч' },
     { id: 'new_10_cards', text: 'Выучить 10 карт', description: 'Запомните первые десять карт из ста стихотворений', reward: 800, icon: '十', group: 'Обучение' },
+    { id: 'new_50_cards', text: 'Выучить 50 карт', description: 'Освойте половину колоды хякунин иссю', reward: 1600, icon: '五', group: 'Обучение' },
     { id: 'repeated_cards', text: 'Повторить все выученные карты', description: 'Закрепите чтение каждой уже знакомой карты', reward: 160, icon: '重', group: 'Обучение' },
     { id: 'new_100_cards', text: 'Выучить все 100 карт', description: 'Завершите изучение полной колоды хякунин иссю', reward: 3200, icon: '百', group: 'Мастерство' },
     { id: 'training_together', text: 'Совместная тренировка', description: 'Проведите тренировку с товарищем по клубу', reward: 320, icon: '結', group: 'Команда' },
   ];
 
-  const getCompletionCount = (achievementId) => {
-    const achievement = completedAchievements.find(a => a.achievement_id === achievementId);
-    return achievement?.claim_count ?? (achievement ? 1 : 0);
-  };
-
   const getMultiplier = (achievementId) => {
     const multiplier = achievementMultipliers.find(m => m.achievement_id === achievementId);
-    return multiplier ? multiplier.multiplier : 1;
+    return multiplier ? multiplier.multiplier : 0;
   };
 
   const launchPetals = (sourceElement) => {
@@ -81,17 +76,14 @@ const Achievements = ({ setPage }) => {
   };
 
   const handleClaimClick = async (achievement, sourceElement) => {
-    const completionCount = getCompletionCount(achievement.id);
     const multiplier = getMultiplier(achievement.id);
 
-    if (completionCount < multiplier) {
+    if (multiplier > 0) {
       setClaimingId(achievement.id);
       setClaimError('');
       const { error } = await completeAchievement(achievement.id);
       if (error) {
-        setClaimError(error.message === 'Achievement reward already claimed'
-          ? 'Эта награда уже получена.'
-          : 'Не удалось начислить лепестки. Попробуйте ещё раз.');
+        setClaimError('Не удалось начислить лепестки. Проверьте, что функция наград в Supabase обновлена.');
       } else {
         setJustClaimedIds(previous => new Set(previous).add(achievement.id));
         launchPetals(sourceElement);
@@ -100,17 +92,12 @@ const Achievements = ({ setPage }) => {
     }
   };
 
-  const completedClaimCount = completedAchievements.reduce(
-    (sum, item) => sum + (item.claim_count ?? 1),
-    0
-  );
-  const totalClaimCount = allAchievements.reduce(
-    (sum, achievement) => sum + getMultiplier(achievement.id),
-    0
-  );
+  const availableAchievementCount = allAchievements.filter(
+    achievement => getMultiplier(achievement.id) > 0
+  ).length;
   const sortedAchievements = [...allAchievements].sort((left, right) => {
-    const leftAvailable = getCompletionCount(left.id) < getMultiplier(left.id);
-    const rightAvailable = getCompletionCount(right.id) < getMultiplier(right.id);
+    const leftAvailable = getMultiplier(left.id) > 0;
+    const rightAvailable = getMultiplier(right.id) > 0;
     return Number(rightAvailable) - Number(leftAvailable);
   });
 
@@ -149,13 +136,13 @@ const Achievements = ({ setPage }) => {
         <button className="ghost-button" onClick={() => setPage('gacha')}>← Вернуться к чтению</button>
         <div className="achievement-progress">
           <div>
-            <span>Получено наград</span>
-            <strong>{completedClaimCount}</strong>
+            <span>Доступно наград</span>
+            <strong>{availableAchievementCount}</strong>
           </div>
           <div className="progress-track">
-            <span style={{ width: `${Math.min(100, (completedClaimCount / totalClaimCount) * 100)}%` }} />
+            <span style={{ width: `${(availableAchievementCount / allAchievements.length) * 100}%` }} />
           </div>
-          <small>из {totalClaimCount}</small>
+          <small>из {allAchievements.length}</small>
         </div>
       </section>
 
@@ -163,10 +150,9 @@ const Achievements = ({ setPage }) => {
 
       <section className="achievement-grid">
         {sortedAchievements.map((ach) => {
-          const completionCount = getCompletionCount(ach.id);
           const multiplier = getMultiplier(ach.id);
-          const canClaim = completionCount < multiplier;
-          const remaining = multiplier - completionCount;
+          const canClaim = multiplier > 0;
+          const remaining = multiplier;
           const justClaimed = justClaimedIds.has(ach.id);
 
           return (
@@ -183,7 +169,7 @@ const Achievements = ({ setPage }) => {
                   <span>🌸</span>
                   <div><small>Награда</small><strong>{ach.reward.toLocaleString('ru-RU')}</strong></div>
                 </div>
-                {multiplier > 1 && <span className="repeat-badge">{completionCount}/{multiplier}</span>}
+                {multiplier > 1 && <span className="repeat-badge">×{multiplier}</span>}
               </div>
               <button
                 className={canClaim ? 'primary-button claim-button' : 'claimed-button'}
@@ -195,7 +181,7 @@ const Achievements = ({ setPage }) => {
                   : justClaimed
                     ? 'Получено'
                     : canClaim
-                    ? `Получить${remaining > 1 ? ` · ещё ${remaining}` : ''}`
+                    ? `Получить${remaining > 1 ? ` · ×${remaining}` : ''}`
                     : 'Ещё не собрано'}
               </button>
             </article>

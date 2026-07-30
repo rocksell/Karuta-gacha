@@ -5,6 +5,7 @@ const allAchievements = [
   { id: 'full_karuta_game', text: 'Сыграть полную игру на 25 карт', icon: '競' },
   { id: 'short_karuta_game', text: 'Сыграть короткую игру', icon: '読' },
   { id: 'new_10_cards', text: 'Выучить 10 карт', icon: '十' },
+  { id: 'new_50_cards', text: 'Выучить 50 карт', icon: '五' },
   { id: 'repeated_cards', text: 'Повторить все выученные карты', icon: '重' },
   { id: 'new_100_cards', text: 'Выучить все 100 карт', icon: '百' },
   { id: 'training_together', text: 'Совместная тренировка', icon: '結' },
@@ -77,18 +78,18 @@ const ManageRewards = ({ user, onClose }) => {
         </header>
         <div className="reward-list">
           {allAchievements.map(ach => {
-            const multiplier = multipliers.find(m => m.achievement_id === ach.id)?.multiplier || 1;
+            const multiplier = multipliers.find(m => m.achievement_id === ach.id)?.multiplier ?? 0;
             return (
               <label className="reward-row" key={ach.id}>
                 <span className="reward-icon">{ach.icon}</span>
-                <span className="reward-name">{ach.text}<small>Количество доступных получений</small></span>
+                <span className="reward-name">{ach.text}<small>Множитель награды</small></span>
                 <span className="multiplier-control">
-                  <button type="button" onClick={() => handleMultiplierChange(ach.id, Math.max(1, multiplier - 1))}>−</button>
+                  <button type="button" onClick={() => handleMultiplierChange(ach.id, Math.max(0, multiplier - 1))}>−</button>
                   <input
                     type="number"
-                    min="1"
+                    min="0"
                     value={multiplier}
-                    onChange={(e) => handleMultiplierChange(ach.id, Math.max(1, parseInt(e.target.value, 10) || 1))}
+                    onChange={(e) => handleMultiplierChange(ach.id, Math.max(0, parseInt(e.target.value, 10) || 0))}
                     aria-label={`Множитель: ${ach.text}`}
                   />
                   <button type="button" onClick={() => handleMultiplierChange(ach.id, multiplier + 1)}>+</button>
