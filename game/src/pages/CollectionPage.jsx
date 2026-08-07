@@ -13,9 +13,18 @@ const getTimesWord = count => {
 }
 
 const CollectionPage = ({ setPage }) => {
-  const { collection } = usePlayerData()
+  const { collection, player, updatePlayer } = usePlayerData()
   const [selectedRarity, setSelectedRarity] = useState(null)
   const [lightboxCard, setLightboxCard] = useState(null)
+  const [isSavingAvatar, setIsSavingAvatar] = useState(false)
+
+  const setAsAvatar = async () => {
+    if (!lightboxCard || isSavingAvatar) return
+    setIsSavingAvatar(true)
+    const { error } = await updatePlayer({ avatar: lightboxCard.card_id })
+    setIsSavingAvatar(false)
+    if (!error) setLightboxCard(null)
+  }
 
   const uniqueCards = useMemo(() => {
     const cardsById = new Map()
@@ -68,7 +77,7 @@ const CollectionPage = ({ setPage }) => {
     <main className="collection-page">
       <section className="collection-hero">
         <div>
-          <span className="eyebrow">報酬コレクション · Награды</span>
+          <span className="eyebrow">Награды</span>
           <h1>Моя коллекция</h1>
           <p>Здесь собраны ваши арты, распределённые по коллекциям.</p>
         </div>
@@ -150,7 +159,14 @@ const CollectionPage = ({ setPage }) => {
           <button className="primary-button" onClick={() => setPage('gacha')}>Начать чтение</button>
         </section>
       )}
-      <RewardLightbox card={lightboxCard} theme="light" onClose={() => setLightboxCard(null)} />
+      <RewardLightbox
+        card={lightboxCard}
+        theme="light"
+        onClose={() => setLightboxCard(null)}
+        actionLabel={player?.avatar === lightboxCard?.card_id ? 'Уже стоит на аватаре' : 'Поставить на аватар'}
+        actionDisabled={isSavingAvatar || player?.avatar === lightboxCard?.card_id}
+        onAction={setAsAvatar}
+      />
     </main>
   )
 }

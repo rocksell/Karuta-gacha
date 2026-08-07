@@ -1372,6 +1372,16 @@
   background: var(--pink-soft);
   border: 2px solid white;
   box-shadow: 0 5px 16px rgba(139, 76, 95, 0.18);
+  overflow: hidden;
+}
+
+.profile-trigger .reward-artwork {
+  width: 100%;
+  border-radius: 50%;
+}
+
+.profile-trigger .reward-art-image {
+  transform: scale(1.45);
 }
 
 .profile-panel {
@@ -1389,10 +1399,45 @@
 }
 
 .profile-panel h3 {
-  margin: 6px 0 18px;
+  margin: 10px 0 12px;
   color: var(--forest);
+  text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.profile-avatar {
+  width: 112px;
+  height: 112px;
+  display: grid;
+  place-items: center;
+  margin: 14px auto 0;
+  overflow: hidden;
+  border: 4px solid white;
+  border-radius: 50%;
+  color: var(--berry);
+  background: var(--pink-soft);
+  box-shadow: 0 10px 26px rgba(83, 64, 45, 0.18);
+  font-size: 42px;
+  cursor: zoom-in;
+}
+
+.profile-avatar:not(.has-art) {
+  cursor: pointer;
+}
+
+.profile-avatar .reward-artwork {
+  width: 100%;
+  border-radius: 50%;
+}
+
+.profile-avatar .reward-art-image {
+  transform: scale(1.42);
+}
+
+.change-avatar-button {
+  width: 100%;
+  margin-bottom: 12px;
 }
 
 .profile-grid {
@@ -1853,6 +1898,10 @@
   background: transparent;
 }
 
+.reward-lightbox-art .reward-art-underlay {
+  display: none;
+}
+
 .reward-lightbox-caption {
   min-width: min(420px, 76vw);
   margin-top: 10px;
@@ -1868,6 +1917,11 @@
 .reward-lightbox-caption span,
 .reward-lightbox-caption strong {
   display: block;
+}
+
+.reward-lightbox-action {
+  width: 100%;
+  margin-top: 12px;
 }
 
 .reward-lightbox-caption span {
@@ -1970,7 +2024,7 @@
   position: relative;
   background:
     linear-gradient(90deg, var(--cream), transparent 20%),
-    url('./assets/karuta-sakura-hero.png') center/cover;
+    url('./assets/japanese-room-with-tatami-floor.jpg') center/cover;
 }
 
 .login-art-caption {

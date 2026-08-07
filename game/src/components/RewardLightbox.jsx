@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { getRewardDetails } from '../lib/gachaRewards'
 import RewardArtwork from './RewardArtwork'
 
-const RewardLightbox = ({ card, onClose, theme = 'dark' }) => {
+const RewardLightbox = ({ card, onClose, theme = 'dark', actionLabel, onAction, actionDisabled = false }) => {
   const reward = getRewardDetails(card)
 
   useEffect(() => {
@@ -31,6 +31,16 @@ const RewardLightbox = ({ card, onClose, theme = 'dark' }) => {
         <div className="reward-lightbox-caption">
           <span>{'★'.repeat(reward.rarity)} · {reward.collectionLabel ?? reward.typeLabel}</span>
           <strong>{reward.name}</strong>
+          {actionLabel && (
+            <button
+              className="primary-button reward-lightbox-action"
+              type="button"
+              disabled={actionDisabled}
+              onClick={onAction}
+            >
+              {actionLabel}
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -114,6 +114,25 @@ export const PlayerDataProvider = ({ children }) => {
     return { data, error: null };
   };
 
+  const updatePlayer = async (changes) => {
+    const previousPlayer = player;
+    const nextPlayer = { ...player, ...changes };
+    setPlayer(nextPlayer);
+    const { data, error } = await supabase
+      .from('players')
+      .update(changes)
+      .eq('id', user.id)
+      .select()
+      .single();
+    if (error) {
+      console.error(error);
+      setPlayer(previousPlayer);
+      return { data: null, error };
+    }
+    setPlayer(data);
+    return { data, error: null };
+  };
+
   const updateAchievementMultipliers = async (newMultipliers) => {
     const previousMultipliers = achievementMultipliers;
     setAchievementMultipliers(newMultipliers);
@@ -135,6 +154,7 @@ export const PlayerDataProvider = ({ children }) => {
     achievementMultipliers,
     loading,
     updateResources,
+    updatePlayer,
     updateGachaProgress,
     addCardToCollection,
     completeAchievement,
