@@ -410,7 +410,7 @@ const GachaPage = () => {
           </section>
         </div>
       )}
-      <RewardLightbox card={lightboxCard} onClose={() => setLightboxCard(null)} />
+      <RewardLightbox card={lightboxCard} theme="light" onClose={() => setLightboxCard(null)} />
     </main>
   )
 }
