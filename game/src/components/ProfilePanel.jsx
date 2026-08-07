@@ -1,11 +1,12 @@
 import { useAuth } from '../hooks/useAuth'
 import { usePlayerData } from '../context/PlayerDataContext'
+import { isArtReward } from '../lib/gachaRewards'
 
 const ProfilePanel = ({ onOpenCollection }) => {
   const { signOut } = useAuth()
-  const { player, gachaProgress, collection } = usePlayerData()
+  const { player, collection } = usePlayerData()
   const uniqueCardsCount = new Set(
-    (collection || []).filter(card => card.card_id?.startsWith('poem-')).map(card => card.card_id)
+    (collection || []).filter(isArtReward).map(card => card.card_id)
   ).size
 
   return (
@@ -13,8 +14,6 @@ const ProfilePanel = ({ onOpenCollection }) => {
       <span className="eyebrow">Игрок каруты</span>
       <h3>{player?.username}</h3>
       <div className="profile-grid">
-        <p><span>Уровень</span><strong>1</strong></p>
-        <p><span>Прочитано</span><strong>{gachaProgress?.total_wishes ?? 0}</strong></p>
         <button className="profile-collection-link" onClick={onOpenCollection}>
           <span>Коллекция</span>
           <strong>{uniqueCardsCount}</strong>

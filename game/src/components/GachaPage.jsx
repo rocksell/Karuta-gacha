@@ -1,12 +1,31 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { usePlayerData } from '../context/PlayerDataContext'
-import heroImage from '../assets/karuta-sakura-hero.png'
+import heroImage from '../assets/japanese-room-with-tatami-floor.jpg'
+import RewardArtwork from './RewardArtwork'
+import RewardLightbox from './RewardLightbox'
+import { getRandomReward, getRewardDetails, isGachaCard } from '../lib/gachaRewards'
+
+const EVENT_END = new Date('2026-09-22T00:00:00+02:00')
+
+const getEventTimeLeft = () => {
+  const millisecondsLeft = Math.max(0, EVENT_END.getTime() - Date.now())
+  const totalHours = Math.floor(millisecondsLeft / (1000 * 60 * 60))
+
+  return {
+    days: Math.floor(totalHours / 24),
+    hours: totalHours % 24,
+  }
+}
 
 const GachaPage = () => {
   const [revealedCards, setRevealedCards] = useState([])
   const [activeCardIndex, setActiveCardIndex] = useState(0)
   const [isSummaryOpen, setIsSummaryOpen] = useState(false)
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
+  const [isRevealPending, setIsRevealPending] = useState(false)
+  const [displayedFiveStarPity, setDisplayedFiveStarPity] = useState(0)
+  const [lightboxCard, setLightboxCard] = useState(null)
+  const [eventTimeLeft] = useState(getEventTimeLeft)
   const {
     resources,
     gachaProgress,
@@ -16,33 +35,52 @@ const GachaPage = () => {
     addCardToCollection,
   } = usePlayerData()
 
-  const generateReward = (pity) => {
-    const getRate = (pity) => {
-      if (pity >= 90) return { '5': 1, '4': 0, '3': 0 }
-      if (pity >= 74) {
-        const fiveStarRate = 0.01 + (pity - 73) * 0.06
-        return {
-          '5': fiveStarRate,
-          '4': (1 - fiveStarRate) * 0.08,
-          '3': (1 - fiveStarRate) * 0.91,
-        }
+  useEffect(() => {
+    if (!isRevealPending && revealedCards.length === 0) {
+      setDisplayedFiveStarPity(gachaProgress?.current_pity ?? 0)
+    }
+  }, [gachaProgress?.current_pity, isRevealPending, revealedCards.length])
+
+  const generateReward = (fiveStarPity, fourStarPity, excludedFourStarTypes = []) => {
+    const getFiveStarRate = () => {
+      if (fiveStarPity >= 90) return 1
+      if (fiveStarPity >= 83) return 0.5
+
+      const softPityRates = {
+        75: 0.2,
+        76: 0.21,
+        77: 0.22,
+        78: 0.23,
+        79: 0.24,
+        80: 0.3,
+        81: 0.31,
+        82: 0.32,
       }
-      return { '5': 0.01, '4': 0.08, '3': 0.91 }
+
+      return softPityRates[fiveStarPity] ?? 0.006
     }
 
-    const rates = getRate(pity)
-    const rand = Math.random()
-    let cumulative = 0
+    let rarity
+    if (fiveStarPity >= 90) {
+      rarity = 5
+    } else if (fourStarPity >= 10) {
+      rarity = 4
+    } else {
+      const fiveStarRate = getFiveStarRate()
+      const fourStarRate = fourStarPity === 9 ? 0.5 : 0.055
+      const roll = Math.random()
 
-    for (const rarity in rates) {
-      cumulative += rates[rarity]
-      if (rand < cumulative) {
-        const cardNumber = Math.floor(Math.random() * 100) + 1
-        return {
-          card_id: `poem-${cardNumber.toString().padStart(3, '0')}`,
-          rarity: parseInt(rarity),
-        }
-      }
+      if (roll < fiveStarRate) rarity = 5
+      else if (roll < fiveStarRate + fourStarRate) rarity = 4
+      else rarity = 3
+    }
+
+    const reward = getRandomReward(rarity, {
+      excludedTypes: rarity === 4 ? excludedFourStarTypes : [],
+    })
+    return {
+      card_id: reward.cardId,
+      rarity,
     }
   }
 
@@ -58,17 +96,35 @@ const GachaPage = () => {
       return
     }
 
+    setIsRevealPending(true)
+
     let currentPity = gachaProgress.current_pity
+    let fourStarPity = gachaProgress.four_star_pity ?? 0
     let newTotalWishes = gachaProgress.total_wishes
+    let hasCandyInFirstTen = (collection || []).some(card =>
+      card.card_id === 'reward-4-candy-candy'
+    )
     const rewards = []
     for (let i = 0; i < amount; i++) {
       currentPity++
+      fourStarPity = Math.min(10, fourStarPity + 1)
       newTotalWishes++
-      const reward = generateReward(currentPity)
+      const isInFirstTen = newTotalWishes <= 10
+      const reward = generateReward(
+        currentPity,
+        fourStarPity,
+        isInFirstTen && hasCandyInFirstTen ? ['candy'] : [],
+      )
+
+      if (isInFirstTen && reward.card_id === 'reward-4-candy-candy') {
+        hasCandyInFirstTen = true
+      }
 
       if (reward.rarity === 5) {
         currentPity = 0
-        // featured character logic to be added here
+      }
+      if (reward.rarity === 4) {
+        fourStarPity = 0
       }
       rewards.push({
         ...reward,
@@ -85,18 +141,23 @@ const GachaPage = () => {
     // Update pity
     await updateGachaProgress({
       current_pity: currentPity,
+      four_star_pity: fourStarPity,
       total_wishes: newTotalWishes,
     })
 
     setRevealedCards(rewards)
     setActiveCardIndex(0)
     setIsSummaryOpen(false)
+    setLightboxCard(null)
   }
 
   const closeCardReveal = () => {
+    setDisplayedFiveStarPity(gachaProgress?.current_pity ?? 0)
+    setIsRevealPending(false)
     setRevealedCards([])
     setActiveCardIndex(0)
     setIsSummaryOpen(false)
+    setLightboxCard(null)
   }
 
   const handleRevealClick = () => {
@@ -110,10 +171,9 @@ const GachaPage = () => {
   }
 
   const activeCard = revealedCards[activeCardIndex]
-  const activeCardNumber = activeCard?.card_number
-    ?? Number(activeCard?.card_id?.replace('poem-', ''))
+  const activeReward = getRewardDetails(activeCard)
   const readingHistory = [...(collection || [])]
-    .filter(card => card.card_id?.startsWith('poem-'))
+    .filter(isGachaCard)
     .sort((left, right) => new Date(right.obtained_at) - new Date(left.obtained_at))
 
   return (
@@ -124,9 +184,9 @@ const GachaPage = () => {
       <div className="sakura sakura-one">✿</div>
       <div className="sakura sakura-two">✿</div>
       <section className="reading-card">
-        <span className="eyebrow">春の大会 · Весенний турнир</span>
+        <span className="eyebrow">夏の大会 · Летний турнир</span>
         <p className="japanese-title">ちはやぶる</p>
-        <h1>Слушай. Чувствуй.<br /><em>Бери карту.</em></h1>
+        <h1>Играй в каруту<br /><em>Получай призы</em></h1>
         <p className="reading-copy">
           Чтец произнесёт первые строки вака. Услышь решающий слог
           и собери свою колоду ста поэтов.
@@ -139,7 +199,7 @@ const GachaPage = () => {
           </div>
           <div className="stat">
             <span>До редкой карты</span>
-            <strong>{Math.max(0, 90 - (gachaProgress?.current_pity ?? 0))}</strong>
+            <strong>{Math.max(0, 90 - displayedFiveStarPity)}</strong>
           </div>
           <div className="stat">
             <span>Прочитано</span>
@@ -162,9 +222,22 @@ const GachaPage = () => {
           <span>▦</span> Посмотреть зачитанные карты
         </button>
       </section>
-      <div className="season-badge">
-        <span>今</span>
-        <div><small>Сезон</small><strong>Цветение сакуры</strong></div>
+      <div className="event-promo">
+        <div className="event-banner">
+          <div className="event-banner-sparkles" aria-hidden="true"><i /><i /><i /></div>
+          <img className="event-character event-character-left" src="/banner.png" alt="" aria-hidden="true" />
+          <img className="event-character event-character-right" src="/banner.png" alt="" aria-hidden="true" />
+          <div className="event-banner-copy">
+            <strong>Летний ивент 5 ✿</strong>
+            <span className="event-banner-prize">Получи портрет персонажа из любой JRPG!</span>
+            <span className="event-banner-divider">или</span>
+            <span className="event-banner-prize">Получи акварельный пейзаж на выбор.</span>
+          </div>
+        </div>
+        <div className="event-countdown">
+          <span aria-hidden="true">◷</span>
+          <strong>Осталось {eventTimeLeft.days} дней {eventTimeLeft.hours} часов</strong>
+        </div>
       </div>
 
       {activeCard && !isSummaryOpen && (
@@ -192,27 +265,39 @@ const GachaPage = () => {
             </div>
             <div className="revealed-card-frame">
               <div className="revealed-card-glow" />
-              <div className="card-burn-line" aria-hidden="true" />
-              <div className="card-burn-sparks" aria-hidden="true">
-                {Array.from({ length: 12 }, (_, index) => (
-                  <i key={index} style={{ '--spark-index': index }} />
-                ))}
+              <div className="reward-card-flipper">
+                <div className="reward-card-face reward-card-back">
+                  <img src={activeReward?.backPath} alt="Рубашка карты каруты" />
+                </div>
+                <div className="reward-card-face reward-card-front">
+                  <button
+                    className="reward-art-open"
+                    aria-label="Открыть арт на весь экран"
+                    onClick={event => {
+                      event.stopPropagation()
+                      setLightboxCard(activeCard)
+                    }}
+                  >
+                    <RewardArtwork card={activeCard} />
+                  </button>
+                  <div className="reward-card-caption">
+                    <small>{activeReward?.typeLabel}</small>
+                    <strong>{activeReward?.name}</strong>
+                  </div>
+                </div>
               </div>
-              <img
-                src={`/cards/${String(activeCardNumber).padStart(3, '0')}.png`}
-                alt={`Карта Огура Хякунин Иссю № ${activeCardNumber}`}
-              />
             </div>
             <div className="card-reveal-copy">
-              <span className="eyebrow">百人一首 · Карта прочитана</span>
-              <h2 id="card-reveal-title">Поэма № {String(activeCardNumber).padStart(3, '0')}</h2>
+              <span className="eyebrow">新しい報酬 · Новая награда</span>
+              <h2 id="card-reveal-title">{activeReward?.name}</h2>
               <div className="rarity-stars" aria-label={`Редкость: ${activeCard.rarity}`}>
                 {Array.from({ length: activeCard.rarity }, (_, index) => (
                   <span key={index} style={{ '--star-index': index }}>✿</span>
                 ))}
               </div>
               <p>
-                В вашей коллекции новая карта
+                {activeReward?.description
+                  ?? `Тип: ${activeReward?.typeLabel}. Карта добавлена в вашу коллекцию.`}
               </p>
               {revealedCards.length > 1 && (
                 <div className="reveal-pagination">
@@ -244,19 +329,16 @@ const GachaPage = () => {
             </header>
             <div className="reading-summary-grid">
               {revealedCards.map((card, index) => {
-                const number = Number(card.card_id.replace('poem-', ''))
+                const reward = getRewardDetails(card)
                 return (
                   <article
                     className={`summary-card summary-rarity-${card.rarity}`}
                     key={`${card.card_id}-${index}`}
                     style={{ '--summary-index': index }}
                   >
-                    <img
-                      src={`/cards/${String(number).padStart(3, '0')}.png`}
-                      alt={`Поэма № ${number}`}
-                    />
+                    <RewardArtwork card={card} />
                     <div>
-                      <strong>№ {String(number).padStart(3, '0')}</strong>
+                      <strong>{reward?.name}</strong>
                       <span>{'✿'.repeat(card.rarity)}</span>
                     </div>
                   </article>
@@ -291,7 +373,7 @@ const GachaPage = () => {
                   </thead>
                   <tbody>
                     {readingHistory.map((card, index) => {
-                      const number = Number(card.card_id.replace('poem-', ''))
+                      const reward = getRewardDetails(card)
                       const obtainedDate = card.obtained_at
                         ? new Date(card.obtained_at).toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' })
                         : '—'
@@ -306,8 +388,8 @@ const GachaPage = () => {
                           </td>
                           <td>
                             <div className="history-card-name">
-                              <img src={`/cards/${String(number).padStart(3, '0')}.png`} alt="" />
-                              <strong>Поэма № {String(number).padStart(3, '0')}</strong>
+                              <RewardArtwork card={card} />
+                              <strong>{reward?.name}</strong>
                             </div>
                           </td>
                           <td><span className="history-rarity-label">{card.rarity} редкость</span></td>
@@ -328,6 +410,7 @@ const GachaPage = () => {
           </section>
         </div>
       )}
+      <RewardLightbox card={lightboxCard} onClose={() => setLightboxCard(null)} />
     </main>
   )
 }
