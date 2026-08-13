@@ -7,6 +7,7 @@
 .playlist-button { flex: none; display: flex; align-items: center; gap: 7px; padding: 10px 13px; border: 1px solid var(--border); border-radius: 999px; color: var(--forest); background: rgba(255,255,255,.78); font-size: 11px; font-weight: 800; box-shadow: 0 8px 20px rgba(49,95,69,.09); }
 .playlist-button span { color: var(--pink-deep); font-size: 18px; line-height: .8; }
 .playlist-heading-actions { display: flex; gap: 7px; }
+.playlist-progress { width: min(430px,100%); display: block; margin: -8px 0 16px; color: var(--forest); font-size: 12px; font-weight: 800; text-align: right; }
 .shuffle-button { padding-inline: 11px; }
 .shuffle-button span { color: var(--leaf); }
 .shuffle-button:disabled { opacity: .42; cursor: default; }
@@ -70,6 +71,7 @@
   .reading-heading-row { width: 100%; flex-wrap: wrap; margin-bottom: 16px; }
   .reading-counter, .reading-heading-row .reading-counter { writing-mode: horizontal-tb; }
   .playlist-heading-actions { max-width: 100%; flex-wrap: wrap; }
+  .playlist-progress { margin: -6px 0 14px; text-align: left; }
   .playlist-button { min-height: 42px; }
   .reading-image-frame { width: min(245px, 76vw); margin-inline: auto; padding: 10px; border-radius: 20px; }
   .reading-navigation { width: min(360px, 100%); margin: 20px auto 0; }

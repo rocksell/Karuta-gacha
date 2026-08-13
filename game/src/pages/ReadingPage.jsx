@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import poems from '../data/poems.json';
 import './ReadingPage.css';
 
+const uniquePlaylist = (numbers) => [...new Set(numbers.filter(number => number >= 1 && number <= 100))];
+
 function KaraokeLine({ text, timings, notation, currentTime }) {
   return (
     <span className="karaoke-line" aria-label={text}>
@@ -49,6 +51,7 @@ export default function ReadingPage() {
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [playlist, setPlaylist] = useState([]);
+  const [playlistRun, setPlaylistRun] = useState(null);
   const [playlistOpen, setPlaylistOpen] = useState(false);
   const [playlistInput, setPlaylistInput] = useState('');
   const audioRef = useRef(null);
@@ -68,8 +71,9 @@ export default function ReadingPage() {
     setPlaybackMode(null);
   };
 
-  const selectPoem = (nextIndex) => {
+  const selectPoem = (nextIndex, keepPlaylistRun = false) => {
     stopPlayback();
+    if (!keepPlaylistRun) setPlaylistRun(null);
     setProgress(0);
     setCurrentTime(0);
     setSelfPhase(0);
@@ -77,10 +81,15 @@ export default function ReadingPage() {
   };
 
   const advancePlaylist = () => {
-    if (!playlist.length) return;
-    const position = playlist.indexOf(poem.number);
-    if (position >= 0 && position < playlist.length - 1) {
-      window.setTimeout(() => selectPoem(playlist[position + 1] - 1), 350);
+    if (!playlistRun?.active) return;
+    const completed = Math.min(playlistRun.position + 1, playlistRun.queue.length);
+    const nextPosition = playlistRun.position + 1;
+
+    if (nextPosition < playlistRun.queue.length) {
+      setPlaylistRun({ ...playlistRun, position: nextPosition, completed });
+      window.setTimeout(() => selectPoem(playlistRun.queue[nextPosition] - 1, true), 350);
+    } else {
+      setPlaylistRun({ ...playlistRun, completed, active: false });
     }
   };
   advancePlaylistRef.current = advancePlaylist;
@@ -160,9 +169,9 @@ export default function ReadingPage() {
     else runSelfReading(currentTime < secondHalfStart ? currentTime : 0, secondHalfStart, 0);
   };
 
-  const togglePlaylistCard = (number) => setPlaylist((current) => current.includes(number)
+  const togglePlaylistCard = (number) => setPlaylist((current) => uniquePlaylist(current.includes(number)
     ? current.filter((item) => item !== number)
-    : [...current, number]);
+    : [...current, number]));
 
   const shufflePlaylist = () => {
     if (playlist.length < 2) return;
@@ -171,7 +180,7 @@ export default function ReadingPage() {
       const randomIndex = Math.floor(Math.random() * (index + 1));
       [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
     }
-    setPlaylist(shuffled);
+    setPlaylist(uniquePlaylist(shuffled));
     selectPoem(shuffled[0] - 1);
   };
 
@@ -188,13 +197,16 @@ export default function ReadingPage() {
         if (number >= 1 && number <= 100) selected.add(number);
       }
     });
-    setPlaylist([...selected].sort((left, right) => left - right));
+    setPlaylist(uniquePlaylist([...selected]).sort((left, right) => left - right));
   };
 
   const startPlaylist = () => {
     if (!playlist.length) return;
+    const queue = uniquePlaylist(playlist);
+    setPlaylist(queue);
+    setPlaylistRun({ queue, position: 0, completed: 0, active: true });
     setPlaylistOpen(false);
-    selectPoem(playlist[0] - 1);
+    selectPoem(queue[0] - 1, true);
   };
 
   return (
@@ -207,6 +219,7 @@ export default function ReadingPage() {
               <button className="playlist-button" onClick={() => setPlaylistOpen(true)}><span>≡</span> Плейлист {playlist.length ? `· ${playlist.length}` : ''}</button>
               <button className="playlist-button shuffle-button" disabled={playlist.length < 2} onClick={shufflePlaylist} aria-label="Перемешать плейлист"><span>⇄</span> Shuffle</button>
             </div>
+            {playlistRun && <span className="playlist-progress">Прочитано: {playlistRun.completed} из {playlistRun.queue.length}</span>}
           </div>
           <div className="reading-image-frame"><img src={poem.image} alt={`Карта ${poem.number}`} /></div>
           <div className="reading-navigation">
@@ -257,7 +270,7 @@ export default function ReadingPage() {
           <section className="playlist-modal" role="dialog" aria-modal="true" aria-label="Создать плейлист">
             <header><div><span className="eyebrow">Карты для чтения</span><h2>Создать плейлист</h2></div><button onClick={() => setPlaylistOpen(false)} aria-label="Закрыть">×</button></header>
             <div className="playlist-quick-input"><input value={playlistInput} onChange={(event) => setPlaylistInput(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && applyPlaylistInput()} placeholder="Например: 1, 5, 12-20" /><button onClick={applyPlaylistInput}>Выбрать</button></div>
-            <div className="playlist-tools"><div><button onClick={() => setPlaylist(poems.map((item) => item.number))}>Все 100</button><button onClick={() => setPlaylist([])}>Очистить</button></div><span>Выбрано: {playlist.length}</span></div>
+            <div className="playlist-tools"><div><button onClick={() => setPlaylist(uniquePlaylist(poems.map((item) => item.number)))}>Все 100</button><button onClick={() => setPlaylist([])}>Очистить</button></div><span>Выбрано: {playlist.length} из 100</span></div>
             <div className="playlist-grid">{poems.map((item) => <button key={item.number} className={playlist.includes(item.number) ? 'is-selected' : ''} onClick={() => togglePlaylistCard(item.number)}>{item.number}</button>)}</div>
             <footer><button className="primary-button" disabled={!playlist.length} onClick={startPlaylist}>Начать</button></footer>
           </section>
