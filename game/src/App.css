@@ -64,6 +64,20 @@
   gap: 10px;
 }
 
+.header-reading-button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 15px;
+  border-radius: 999px;
+  color: var(--forest);
+  background: transparent;
+  font-weight: 700;
+}
+
+.header-reading-button span { color: var(--pink-deep); font-size: 18px; }
+.header-reading-button:hover, .header-reading-button.is-active { background: var(--pink-soft); color: var(--berry); }
+
 .admin-button {
   background: var(--pink-soft);
   color: var(--berry);
@@ -109,6 +123,8 @@
   .brand-kana {
     display: none;
   }
+
+  .header-reading-button { padding: 9px; font-size: 0; }
 }
 
 .karuta-stage {
@@ -3381,5 +3397,419 @@
   .collection-card footer {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+/* Mobile readability pass shared by every application section. */
+@media (max-width: 720px) {
+  html,
+  body,
+  #root,
+  .app-shell {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .app-header {
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    gap: 8px;
+  }
+
+  .brand {
+    min-width: 0;
+  }
+
+  .brand > span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .header-actions,
+  .profile-actions {
+    min-width: 0;
+    gap: 6px;
+  }
+
+  .header-reading-button,
+  .admin-button,
+  .petals-button,
+  .profile-trigger {
+    flex: 0 0 auto;
+  }
+
+  .primary-button,
+  .secondary-button,
+  .ghost-button {
+    min-height: 44px;
+  }
+
+  .karuta-stage {
+    width: 100%;
+    height: auto;
+    min-height: calc(100svh - 66px);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    overflow: visible;
+    padding: 24px 16px 42px;
+    background-image: linear-gradient(rgba(255, 253, 247, 0.9), rgba(255, 253, 247, 0.98)), var(--hero-image);
+    background-position: center;
+  }
+
+  .reading-card {
+    order: 1;
+  }
+
+  .event-promo {
+    width: 100%;
+    order: 2;
+    position: relative;
+    inset: auto;
+    margin: 28px auto 0;
+  }
+
+  .event-banner {
+    max-width: 520px;
+    margin-inline: auto;
+  }
+
+  .reading-card h1 {
+    font-size: clamp(34px, 11vw, 48px);
+    overflow-wrap: anywhere;
+  }
+
+  .japanese-title {
+    font-size: clamp(38px, 13vw, 52px);
+  }
+
+  .reading-copy br {
+    display: none;
+  }
+
+  .stats-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .stat {
+    min-width: 0;
+    padding-inline: 7px;
+  }
+
+  .stat span,
+  .stat strong {
+    overflow-wrap: anywhere;
+  }
+
+  .stat span {
+    font-size: 9px;
+  }
+
+  .reading-history-link {
+    min-height: 44px;
+    text-align: left;
+  }
+
+  .card-reveal-modal {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .card-reveal-copy {
+    position: relative;
+    inset: auto;
+    margin-top: min(57vw, 225px);
+    padding-bottom: 24px;
+  }
+
+  .card-reveal-copy h2 {
+    font-size: clamp(26px, 9vw, 36px);
+    overflow-wrap: anywhere;
+  }
+
+  .revealed-card-frame {
+    top: 70px;
+    translate: -50% 0;
+  }
+
+  .reading-summary-grid {
+    width: 100%;
+  }
+
+  .summary-card strong {
+    font-size: 10px;
+    overflow-wrap: anywhere;
+  }
+
+  .history-modal {
+    width: 100%;
+    max-height: 88svh;
+  }
+
+  .history-head {
+    position: sticky;
+    z-index: 2;
+    top: 0;
+    background: rgba(255, 253, 247, 0.98);
+  }
+
+  .history-head h2 {
+    font-size: 25px;
+  }
+
+  .history-table th:nth-child(3),
+  .history-table td:nth-child(3),
+  .history-table th:nth-child(4),
+  .history-table td:nth-child(4) {
+    display: none;
+  }
+
+  .history-table th:first-child,
+  .history-table td:first-child {
+    width: 82px;
+  }
+
+  .history-card-name {
+    min-width: 0;
+  }
+
+  .history-card-name strong {
+    overflow-wrap: anywhere;
+  }
+
+  .login-form-side {
+    width: min(100%, 520px);
+    min-height: 100svh;
+    margin: auto;
+    align-content: center;
+    padding: 30px 20px max(30px, env(safe-area-inset-bottom));
+  }
+
+  .login-brand {
+    margin-bottom: clamp(32px, 9vh, 60px);
+  }
+
+  .login-form-side h1 {
+    font-size: clamp(36px, 12vw, 50px);
+  }
+
+  .login-form input {
+    min-height: 50px;
+    font-size: 16px;
+  }
+
+  .email-confirm-backdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .email-confirm-modal {
+    padding: 30px 20px max(28px, env(safe-area-inset-bottom));
+    border-radius: 26px 26px 0 0;
+  }
+
+  .profile-panel {
+    width: min(310px, calc(100vw - 24px));
+    position: fixed;
+    top: 72px;
+    right: 12px;
+    max-height: calc(100svh - 84px);
+    overflow-y: auto;
+  }
+
+  .collection-hero h1,
+  .achievements-hero h1,
+  .admin-hero h1 {
+    font-size: clamp(34px, 11vw, 44px);
+    overflow-wrap: anywhere;
+  }
+
+  .collection-hero p,
+  .achievements-hero p,
+  .admin-hero p {
+    font-size: 13px;
+  }
+
+  .collection-toolbar,
+  .collection-filter {
+    width: 100%;
+  }
+
+  .collection-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .collection-filter > span {
+    width: 100%;
+  }
+
+  .collection-filter button {
+    min-height: 42px;
+  }
+
+  .collection-group-head {
+    align-items: flex-start;
+  }
+
+  .collection-group-head > div {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .collection-group-head h2 {
+    overflow-wrap: anywhere;
+  }
+
+  .collection-card footer strong,
+  .collection-card footer small {
+    overflow-wrap: anywhere;
+  }
+
+  .reward-lightbox {
+    align-items: center;
+    padding: 64px 14px 18px;
+  }
+
+  .reward-lightbox-content {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100svh - 82px);
+  }
+
+  .reward-lightbox-art {
+    width: min(92vw, 60svh);
+  }
+
+  .reward-lightbox-caption {
+    width: 100%;
+    min-width: 0;
+    padding: 11px 14px;
+  }
+
+  .achievement-progress {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) minmax(70px, 110px) auto;
+  }
+
+  .achievement-card {
+    min-height: 0;
+    padding: 20px;
+  }
+
+  .admin-hero > .ghost-button {
+    width: 100%;
+  }
+
+  .admin-table-wrap {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-table {
+    min-width: 520px;
+  }
+
+  .admin-table th:nth-child(3),
+  .admin-table td:nth-child(3) {
+    display: none;
+  }
+
+  .player-cell {
+    min-width: 175px;
+  }
+
+  .reward-modal {
+    width: 100%;
+    max-height: 94svh;
+  }
+
+  .reward-modal-actions {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+
+  .reward-modal-actions button {
+    flex: 1;
+  }
+}
+
+@media (max-width: 420px) {
+  .app-header {
+    padding-inline: 10px;
+  }
+
+  .brand > span:last-child,
+  .admin-button {
+    display: none;
+  }
+
+  .brand-mark {
+    width: 38px;
+  }
+
+  .stats-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .stat,
+  .stat:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-right: 0;
+    border-bottom: 1px solid rgba(49, 95, 69, 0.1);
+  }
+
+  .stat:last-child {
+    border-bottom: 0;
+  }
+
+  .stat strong {
+    margin-top: 0;
+  }
+
+  .event-banner-copy .event-banner-prize {
+    font-size: 7px;
+  }
+
+  .reading-summary-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .collection-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .collection-card footer {
+    flex-direction: row;
+  }
+
+  .achievement-progress {
+    grid-template-columns: 1fr auto;
+  }
+
+  .achievement-progress .progress-track {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .reward-row {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .multiplier-control {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .reward-modal-actions {
+    flex-direction: column-reverse;
   }
 }

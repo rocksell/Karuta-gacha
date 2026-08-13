@@ -29,7 +29,12 @@ export const PlayerDataProvider = ({ children }) => {
           supabase.from('players').select('*').eq('id', user.id).single(),
           supabase.from('player_resources').select('*').eq('player_id', user.id).single(),
           supabase.from('gacha_progress').select('*').eq('player_id', user.id).single(),
-          supabase.from('collections').select('*').eq('player_id', user.id),
+          supabase
+            .from('collections')
+            .select('*')
+            .eq('player_id', user.id)
+            .order('obtained_at', { ascending: true })
+            .order('id', { ascending: true }),
           supabase.from('player_achievement_multipliers').select('*').eq('player_id', user.id),
         ]);
 

@@ -6,6 +6,7 @@ import GachaPage from './components/GachaPage';
 import Achievements from './pages/Achievements';
 import AdminPage from './pages/AdminPage';
 import CollectionPage from './pages/CollectionPage';
+import ReadingPage from './pages/ReadingPage';
 import ProfileButton from './components/ProfileButton';
 import './App.css';
 
@@ -29,6 +30,9 @@ function App() {
           </span>
         </button>
         <div className="header-actions">
+          <button className={`header-reading-button ${page === 'reading' ? 'is-active' : ''}`} onClick={() => setPage('reading')}>
+            <span>♪</span> Чтение
+          </button>
           {player?.role === 'admin' && (
             <button className="ghost-button admin-button" onClick={() => setPage('admin')}>Админ</button>
           )}
@@ -45,6 +49,7 @@ function App() {
           {page === 'gacha' && <GachaPage />}
           {page === 'achievements' && <Achievements setPage={setPage} />}
           {page === 'collection' && <CollectionPage setPage={setPage} />}
+          {page === 'reading' && <ReadingPage />}
           {page === 'admin' && <AdminPage setPage={setPage} />}
         </>
       )}

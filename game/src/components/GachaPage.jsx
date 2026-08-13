@@ -17,6 +17,18 @@ const getEventTimeLeft = () => {
   }
 }
 
+const sortReadingHistory = (cards) => {
+  return cards.map((card, sourceIndex) => ({ card, sourceIndex })).sort((leftEntry, rightEntry) => {
+    const left = leftEntry.card
+    const right = rightEntry.card
+    const timeDifference = new Date(right.obtained_at) - new Date(left.obtained_at)
+    if (timeDifference !== 0) return timeDifference
+    const idDifference = String(right.id ?? '').localeCompare(String(left.id ?? ''), undefined, { numeric: true })
+    if (idDifference !== 0) return idDifference
+    return rightEntry.sourceIndex - leftEntry.sourceIndex
+  }).map(({ card }) => card)
+}
+
 const GachaPage = () => {
   const [revealedCards, setRevealedCards] = useState([])
   const [activeCardIndex, setActiveCardIndex] = useState(0)
@@ -105,6 +117,7 @@ const GachaPage = () => {
       card.card_id === 'reward-4-candy-candy'
     )
     const rewards = []
+    const pullTimestamp = Date.now()
     for (let i = 0; i < amount; i++) {
       currentPity++
       fourStarPity = Math.min(10, fourStarPity + 1)
@@ -128,7 +141,8 @@ const GachaPage = () => {
       }
       rewards.push({
         ...reward,
-        obtained_at: new Date()
+        // History is chronological: preserve the exact order in which cards are revealed.
+        obtained_at: new Date(pullTimestamp + i)
       })
     }
 
@@ -172,9 +186,7 @@ const GachaPage = () => {
 
   const activeCard = revealedCards[activeCardIndex]
   const activeReward = getRewardDetails(activeCard)
-  const readingHistory = [...(collection || [])]
-    .filter(isGachaCard)
-    .sort((left, right) => new Date(right.obtained_at) - new Date(left.obtained_at))
+  const readingHistory = sortReadingHistory((collection || []).filter(isGachaCard))
 
   return (
     <main
