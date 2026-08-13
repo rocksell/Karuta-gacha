@@ -13,10 +13,13 @@ const getTimesWord = count => {
 }
 
 const CollectionPage = ({ setPage }) => {
-  const { collection, player, updatePlayer } = usePlayerData()
+  const { collection, player, rewardCompletions, updatePlayer } = usePlayerData()
   const [selectedRarity, setSelectedRarity] = useState(null)
   const [lightboxCard, setLightboxCard] = useState(null)
   const [isSavingAvatar, setIsSavingAvatar] = useState(false)
+  const completionCounts = useMemo(() => Object.fromEntries(
+    (rewardCompletions || []).map(item => [item.card_id, item.completed_count]),
+  ), [rewardCompletions])
 
   const setAsAvatar = async () => {
     if (!lightboxCard || isSavingAvatar) return
@@ -133,6 +136,11 @@ const CollectionPage = ({ setPage }) => {
                       <small className="collection-obtained-count">
                         Получена {card.obtainedCount} {getTimesWord(card.obtainedCount)}
                       </small>
+                      {card.rarity >= 4 && (
+                        <small className="collection-completed-count">
+                          Выполнено: {Math.min(completionCounts[card.card_id] ?? 0, card.obtainedCount)}
+                        </small>
+                      )}
                     </div>
                     <span aria-label={`Редкость: ${card.rarity}`}>{'✿'.repeat(card.rarity)}</span>
                   </footer>

@@ -4,6 +4,7 @@ import { usePlayerData } from '../context/PlayerDataContext';
 const Achievements = ({ setPage }) => {
   const {
     achievementMultipliers,
+    claimedAchievementIds,
     completeAchievement,
     resources,
   } = usePlayerData();
@@ -92,10 +93,14 @@ const Achievements = ({ setPage }) => {
     }
   };
 
-  const availableAchievementCount = allAchievements.filter(
+  const visibleAchievements = allAchievements.filter(
+    achievement => !claimedAchievementIds.includes(achievement.id)
+      && achievementMultipliers.find(item => item.achievement_id === achievement.id)?.is_visible !== false
+  );
+  const availableAchievementCount = visibleAchievements.filter(
     achievement => getMultiplier(achievement.id) > 0
   ).length;
-  const sortedAchievements = [...allAchievements].sort((left, right) => {
+  const sortedAchievements = [...visibleAchievements].sort((left, right) => {
     const leftAvailable = getMultiplier(left.id) > 0;
     const rightAvailable = getMultiplier(right.id) > 0;
     return Number(rightAvailable) - Number(leftAvailable);
@@ -140,9 +145,9 @@ const Achievements = ({ setPage }) => {
             <strong>{availableAchievementCount}</strong>
           </div>
           <div className="progress-track">
-            <span style={{ width: `${(availableAchievementCount / allAchievements.length) * 100}%` }} />
+            <span style={{ width: `${visibleAchievements.length ? (availableAchievementCount / visibleAchievements.length) * 100 : 0}%` }} />
           </div>
-          <small>из {allAchievements.length}</small>
+          <small>из {visibleAchievements.length}</small>
         </div>
       </section>
 
@@ -182,7 +187,7 @@ const Achievements = ({ setPage }) => {
                     ? 'Получено'
                     : canClaim
                     ? `Получить${remaining > 1 ? ` · ×${remaining}` : ''}`
-                    : 'Ещё не собрано'}
+                    : 'Ещё не выполнено'}
               </button>
             </article>
           );

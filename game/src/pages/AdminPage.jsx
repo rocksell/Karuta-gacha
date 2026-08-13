@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import ManageRewards from '../components/ManageRewards';
+import MarkRewards from '../components/MarkRewards';
 
 const AdminPage = ({ setPage }) => {
   const [users, setUsers] = useState([]);
@@ -8,6 +9,7 @@ const AdminPage = ({ setPage }) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [query, setQuery] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [section, setSection] = useState('petals');
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -52,10 +54,14 @@ const AdminPage = ({ setPage }) => {
       </section>
 
       <section className="admin-panel">
+        <div className="admin-section-tabs" aria-label="Разделы админ-панели">
+          <button className={section === 'petals' ? 'is-active' : ''} onClick={() => setSection('petals')}>Добавить лепестки</button>
+          <button className={section === 'rewards' ? 'is-active' : ''} onClick={() => setSection('rewards')}>Отметить награды</button>
+        </div>
         <div className="admin-panel-head">
           <div>
             <span className="eyebrow">Реестр участников</span>
-            <h2>Игроки</h2>
+            <h2>{section === 'petals' ? 'Добавить лепестки' : 'Отметить награды'}</h2>
           </div>
           <label className="admin-search">
             <span>⌕</span>
@@ -93,7 +99,9 @@ const AdminPage = ({ setPage }) => {
                   <td><span className={`role-badge ${user.role === 'admin' ? 'is-admin' : ''}`}>{user.role === 'admin' ? 'Судья' : 'Игрок'}</span></td>
                   <td><code className="player-id">{user.id.slice(0, 8)}…</code></td>
                   <td>
-                    <button className="reward-button" onClick={() => setSelectedUser(user)}>Награды <span>→</span></button>
+                    <button className="reward-button" onClick={() => setSelectedUser(user)}>
+                      {section === 'petals' ? 'Добавить' : 'Отметить'} <span>→</span>
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -102,8 +110,11 @@ const AdminPage = ({ setPage }) => {
           {filteredUsers.length === 0 && <div className="empty-players">🌸 Игроки не найдены</div>}
         </div>
       </section>
-      {selectedUser && (
+      {selectedUser && section === 'petals' && (
         <ManageRewards user={selectedUser} onClose={() => setSelectedUser(null)} />
+      )}
+      {selectedUser && section === 'rewards' && (
+        <MarkRewards user={selectedUser} onClose={() => setSelectedUser(null)} />
       )}
     </main>
   );

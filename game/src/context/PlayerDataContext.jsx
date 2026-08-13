@@ -13,6 +13,8 @@ export const PlayerDataProvider = ({ children }) => {
   const [gachaProgress, setGachaProgress] = useState(null);
   const [collection, setCollection] = useState([]);
   const [achievementMultipliers, setAchievementMultipliers] = useState([]);
+  const [claimedAchievementIds, setClaimedAchievementIds] = useState([]);
+  const [rewardCompletions, setRewardCompletions] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,6 +27,8 @@ export const PlayerDataProvider = ({ children }) => {
           { data: gachaProgressData, error: gachaProgressError },
           { data: collectionData, error: collectionError },
           { data: multipliersData, error: multipliersError },
+          { data: claimedAchievementsData, error: claimedAchievementsError },
+          { data: rewardCompletionsData, error: rewardCompletionsError },
         ] = await Promise.all([
           supabase.from('players').select('*').eq('id', user.id).single(),
           supabase.from('player_resources').select('*').eq('player_id', user.id).single(),
@@ -36,6 +40,8 @@ export const PlayerDataProvider = ({ children }) => {
             .order('obtained_at', { ascending: true })
             .order('id', { ascending: true }),
           supabase.from('player_achievement_multipliers').select('*').eq('player_id', user.id),
+          supabase.from('player_claimed_achievements').select('achievement_id').eq('player_id', user.id),
+          supabase.from('player_reward_completions').select('*').eq('player_id', user.id),
         ]);
 
         if (playerError) console.error(playerError);
@@ -43,12 +49,16 @@ export const PlayerDataProvider = ({ children }) => {
         if (gachaProgressError) console.error(gachaProgressError);
         if (collectionError) console.error(collectionError);
         if (multipliersError) console.error(multipliersError);
+        if (claimedAchievementsError) console.error(claimedAchievementsError);
+        if (rewardCompletionsError) console.error(rewardCompletionsError);
 
         setPlayer(playerData);
         setResources(resourcesData);
         setGachaProgress(gachaProgressData);
         setCollection(collectionData || []);
         setAchievementMultipliers(multipliersData || []);
+        setClaimedAchievementIds((claimedAchievementsData || []).map(item => item.achievement_id));
+        setRewardCompletions(rewardCompletionsData || []);
         setLoading(false);
       };
 
@@ -114,6 +124,11 @@ export const PlayerDataProvider = ({ children }) => {
           ? { ...item, multiplier: 0 }
           : item
       ));
+      if (data.claim_count > 0) {
+        setClaimedAchievementIds(previous => previous.includes(achievementId)
+          ? previous
+          : [...previous, achievementId]);
+      }
     }
 
     return { data, error: null };
@@ -157,6 +172,8 @@ export const PlayerDataProvider = ({ children }) => {
     gachaProgress,
     collection,
     achievementMultipliers,
+    claimedAchievementIds,
+    rewardCompletions,
     loading,
     updateResources,
     updatePlayer,

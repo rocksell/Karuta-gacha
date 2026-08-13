@@ -11,6 +11,14 @@ const allAchievements = [
   { id: 'training_together', text: 'Совместная тренировка', icon: '結' },
 ];
 
+const EyeIcon = ({ open }) => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+    <circle cx="12" cy="12" r="2.7" />
+    {!open && <path d="M4 4 20 20" />}
+  </svg>
+);
+
 const ManageRewards = ({ user, onClose }) => {
   const [multipliers, setMultipliers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,14 +44,35 @@ const ManageRewards = ({ user, onClose }) => {
   }, [user]);
 
   const handleMultiplierChange = (achievementId, value) => {
-    const newMultipliers = [...multipliers];
-    const existingMultiplier = newMultipliers.find(m => m.achievement_id === achievementId);
+    const existingMultiplier = multipliers.find(m => m.achievement_id === achievementId);
     if (existingMultiplier) {
-      existingMultiplier.multiplier = value;
-    } else {
-      newMultipliers.push({ player_id: user.id, achievement_id: achievementId, multiplier: value });
+      setMultipliers(current => current.map(item => item.achievement_id === achievementId
+        ? { ...item, multiplier: value }
+        : item));
+      return;
     }
-    setMultipliers(newMultipliers);
+    setMultipliers(current => [...current, {
+      player_id: user.id,
+      achievement_id: achievementId,
+      multiplier: value,
+      is_visible: true,
+    }]);
+  };
+
+  const toggleVisibility = (achievementId) => {
+    const existingMultiplier = multipliers.find(item => item.achievement_id === achievementId);
+    if (existingMultiplier) {
+      setMultipliers(current => current.map(item => item.achievement_id === achievementId
+        ? { ...item, is_visible: item.is_visible === false }
+        : item));
+      return;
+    }
+    setMultipliers(current => [...current, {
+      player_id: user.id,
+      achievement_id: achievementId,
+      multiplier: 0,
+      is_visible: false,
+    }]);
   };
 
   const handleSave = async () => {
@@ -70,19 +99,30 @@ const ManageRewards = ({ user, onClose }) => {
       <section className="reward-modal" role="dialog" aria-modal="true" aria-labelledby="reward-title">
         <header className="reward-modal-head">
           <div>
-            <span className="eyebrow">Особые награды</span>
-            <h3 id="reward-title">Свиток участника</h3>
+            <span className="eyebrow">Добавить лепестки</span>
+            <h3 id="reward-title">Лепестки за достижения</h3>
             <p>{user.username || 'Игрок без имени'}</p>
           </div>
           <button className="modal-close" aria-label="Закрыть" onClick={onClose}>×</button>
         </header>
         <div className="reward-list">
           {allAchievements.map(ach => {
-            const multiplier = multipliers.find(m => m.achievement_id === ach.id)?.multiplier ?? 0;
+            const settings = multipliers.find(m => m.achievement_id === ach.id);
+            const multiplier = settings?.multiplier ?? 0;
+            const isVisible = settings?.is_visible !== false;
             return (
-              <label className="reward-row" key={ach.id}>
+              <div className={`reward-row ${isVisible ? '' : 'is-hidden'}`} key={ach.id}>
                 <span className="reward-icon">{ach.icon}</span>
-                <span className="reward-name">{ach.text}<small>Множитель награды</small></span>
+                <span className="reward-name">{ach.text}<small>Количество наград в лепестках</small></span>
+                <button
+                  type="button"
+                  className={`achievement-visibility-button ${isVisible ? 'is-visible' : ''}`}
+                  onClick={() => toggleVisibility(ach.id)}
+                  aria-label={`${isVisible ? 'Скрыть' : 'Показать'} достижение «${ach.text}»`}
+                  title={isVisible ? 'Видно игроку' : 'Скрыто от игрока'}
+                >
+                  <EyeIcon open={isVisible} />
+                </button>
                 <span className="multiplier-control">
                   <button type="button" onClick={() => handleMultiplierChange(ach.id, Math.max(0, multiplier - 1))}>−</button>
                   <input
@@ -94,7 +134,7 @@ const ManageRewards = ({ user, onClose }) => {
                   />
                   <button type="button" onClick={() => handleMultiplierChange(ach.id, multiplier + 1)}>+</button>
                 </span>
-              </label>
+              </div>
             );
           })}
         </div>
@@ -102,7 +142,7 @@ const ManageRewards = ({ user, onClose }) => {
         <footer className="reward-modal-actions">
           <button className="ghost-button" onClick={onClose}>Отмена</button>
           <button className="primary-button" onClick={handleSave} disabled={saving}>
-            {saving ? 'Сохраняем…' : 'Сохранить награды'}
+            {saving ? 'Сохраняем…' : 'Сохранить лепестки'}
           </button>
         </footer>
       </section>
