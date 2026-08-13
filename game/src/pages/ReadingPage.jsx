@@ -94,6 +94,33 @@ export default function ReadingPage() {
   };
   advancePlaylistRef.current = advancePlaylist;
 
+  const navigateReading = (direction) => {
+    if (!playlistRun) {
+      selectPoem(poemIndex + direction);
+      return;
+    }
+
+    if (direction > 0) {
+      const completed = Math.min(playlistRun.completed + 1, playlistRun.queue.length);
+      const nextPosition = Math.min(playlistRun.position + 1, playlistRun.queue.length - 1);
+      setPlaylistRun({
+        ...playlistRun,
+        position: nextPosition,
+        completed,
+        active: completed < playlistRun.queue.length,
+      });
+      if (nextPosition !== playlistRun.position) selectPoem(playlistRun.queue[nextPosition] - 1, true);
+      else stopPlayback();
+      return;
+    }
+
+    const previousPosition = Math.max(playlistRun.position - 1, 0);
+    const completed = Math.max(playlistRun.completed - 1, 0);
+    setPlaylistRun({ ...playlistRun, position: previousPosition, completed, active: true });
+    if (previousPosition !== playlistRun.position) selectPoem(playlistRun.queue[previousPosition] - 1, true);
+    else stopPlayback();
+  };
+
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return undefined;
@@ -175,13 +202,16 @@ export default function ReadingPage() {
 
   const shufflePlaylist = () => {
     if (playlist.length < 2) return;
-    const shuffled = [...playlist];
-    for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const cardsToShuffle = uniquePlaylist(playlist);
+
+    for (let index = cardsToShuffle.length - 1; index > 0; index -= 1) {
       const randomIndex = Math.floor(Math.random() * (index + 1));
-      [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
+      [cardsToShuffle[index], cardsToShuffle[randomIndex]] = [cardsToShuffle[randomIndex], cardsToShuffle[index]];
     }
-    setPlaylist(uniquePlaylist(shuffled));
-    selectPoem(shuffled[0] - 1);
+    const shuffled = uniquePlaylist(cardsToShuffle);
+    setPlaylist(shuffled);
+    setPlaylistRun({ queue: shuffled, position: 0, completed: 0, active: true });
+    selectPoem(shuffled[0] - 1, true);
   };
 
   const applyPlaylistInput = () => {
@@ -223,9 +253,9 @@ export default function ReadingPage() {
           </div>
           <div className="reading-image-frame"><img src={poem.image} alt={`Карта ${poem.number}`} /></div>
           <div className="reading-navigation">
-            <button onClick={() => selectPoem(poemIndex - 1)} aria-label="Предыдущая карта">←</button>
+            <button onClick={() => navigateReading(-1)} aria-label="Предыдущая карта">←</button>
             <input aria-label="Номер карты" type="range" min="1" max="100" value={poem.number} onChange={(event) => selectPoem(Number(event.target.value) - 1)} />
-            <button onClick={() => selectPoem(poemIndex + 1)} aria-label="Следующая карта">→</button>
+            <button onClick={() => navigateReading(1)} aria-label="Следующая карта">→</button>
           </div>
         </div>
 
